@@ -1,27 +1,16 @@
 import { PrismaClient } from '@prisma/client'
+import express from 'express'
 
 const prisma = new PrismaClient()
+const app = express()
 
-async function main() {
-  const user = await prisma.user.create({
-    data: {
-      email: 'motya@example.com',
-      password: 'supersecret',
-      username: 'motya',
-      avatarUrl: null,
-    },
-  })
-  console.log('Created user:', user)
+app.use(express.json())
 
-  const allUsers = await prisma.user.findMany()
-  console.log(' All users:')
-  console.dir(allUsers, { depth: null })
-}
+app.get('/users', async (req, res) => {
+  const users = await prisma.user.findMany()
+  res.json(users)
+})
 
-main()
-  .catch((e) => {
-    console.error(' Error:', e)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+app.listen(3000, () =>
+  console.log('REST API server ready at: http://localhost:3000'),
+)

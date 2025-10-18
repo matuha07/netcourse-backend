@@ -1,10 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model User {
+  id          Int          @id(map: "User_pkey") @default(autoincrement())
+  email       String
+  password    String
+  username    String?
+  avatarUrl   String?      @map("avatar_url")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  enrollments Enrollment[]
+  progress    Progress[]
+
+  @@map("users")
+}
+
+model Course {
+  id          Int          @id(map: "Course_pkey") @default(autoincrement())
+  title       String
+  description String?
+  category    String?
+  enrollments Enrollment[]
+  sections    Section[]
+
+  @@map("courses")
+}
+
+model Section {
+  id         Int      @id(map: "Section_pkey") @default(autoincrement())
+  courseId   Int      @map("course_id")
+  title      String
+  orderIndex Int      @default(0) @map("order_index")
+  lessons    Lesson[]
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade, map: "Section_course_id_fkey")
+
+  @@map("sections")
+}
+
+model Lesson {
+  id          Int          @id(map: "Lesson_pkey") @default(autoincrement())
+  sectionId   Int          @map("section_id")
+  title       String
+  contentType ContentType? @map("content_type")
+  videoUrl    String?      @map("video_url")
+  textContent String?      @map("text_content")
+  orderIndex  Int          @default(0) @map("order_index")
+  section     Section      @relation(fields: [sectionId], references: [id], onDelete: Cascade, map: "Lesson_section_id_fkey")
+  progress    Progress[]
+  quizzes     Quiz[]
+
+  @@map("lessons")
+}
+
+model Quiz {
+  id        Int        @id(map: "Quiz_pkey") @default(autoincrement())
+  lessonId  Int        @map("lesson_id")
+  title     String
+  questions Question[]
+  lesson    Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade, map: "Quiz_lesson_id_fkey")
+
+  @@map("quizzes")
+}
+
+model Question {
+  id           Int           @id(map: "Question_pkey") @default(autoincrement())
+  quizId       Int           @map("quiz_id")
+  questionText String        @map("question_text")
+  questionType QuestionType? @map("question_type")
+  answers      Answer[]
+  quiz         Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade, map: "Question_quiz_id_fkey")
+
+  @@map("questions")
+}
+
+model Answer {
+  id         Int       @id(map: "Answer_pkey") @default(autoincrement())
+  questionId Int?      @map("question_id")
+  answerText String    @map("answer_text")
+  isCorrect  Boolean   @default(false) @map("is_correct")
+  question   Question? @relation(fields: [questionId], references: [id], onDelete: Cascade, map: "Answer_question_id_fkey")
+
+  @@map("answers")
+}
+
+model Enrollment {
+  id         Int      @id(map: "Enrollment_pkey") @default(autoincrement())
+  userId     Int      @map("user_id")
+  courseId   Int      @map("course_id")
+  enrolledAt DateTime @default(now()) @map("enrolled_at")
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade, map: "Enrollment_course_id_fkey")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Enrollment_user_id_fkey")
+
+  @@unique([userId, courseId], map: "Enrollment_user_id_course_id_key")
+  @@map("enrollments")
+}
+
+model Progress {
+  id        Int            @id(map: "Progress_pkey") @default(autoincrement())
+  userId    Int            @map("user_id")
+  lessonId  Int            @map("lesson_id")
+  status    ProgressStatus @default(not_started)
+  updatedAt DateTime       @default(now()) @map("updated_at")
+  lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade, map: "Progress_lesson_id_fkey")
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Progress_user_id_fkey")
+
+  @@unique([userId, lessonId], map: "Progress_user_id_lesson_id_key")
+  @@map("progress")
 }
 
 enum ContentType {
@@ -23,103 +129,4 @@ enum ProgressStatus {
   not_started
   in_progress
   completed
-}
-
-model User {
-  id         Int          @id @default(autoincrement())
-  email      String
-  password   String
-  username   String?
-  avatarUrl  String?      @map("avatar_url")
-  createdAt  DateTime     @default(now()) @map("created_at")
-
-  enrollments Enrollment[]
-  progress    Progress[]
-}
-
-model Course {
-  id          Int          @id @default(autoincrement())
-  title       String
-  description String?
-  category    String?
-  sections    Section[]
-  enrollments Enrollment[]
-}
-
-model Section {
-  id          Int       @id @default(autoincrement())
-  courseId    Int       @map("course_id")
-  title       String
-  orderIndex  Int       @default(0) @map("order_index")
-
-  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessons Lesson[]
-}
-
-model Lesson {
-  id          Int           @id @default(autoincrement())
-  sectionId   Int           @map("section_id")
-  title       String
-  contentType ContentType?  @map("content_type")
-  videoUrl    String?       @map("video_url")
-  textContent String?       @map("text_content")
-  orderIndex  Int           @default(0) @map("order_index")
-
-  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  quizzes Quiz[]   
-  progress Progress[]
-}
-
-model Quiz {
-  id       Int      @id @default(autoincrement())
-  lessonId Int      @map("lesson_id")
-  title    String
-
-  lesson     Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  questions  Question[]
-}
-
-
-model Question {
-  id            Int           @id @default(autoincrement())
-  quizId        Int           @map("quiz_id")
-  questionText  String        @map("question_text")
-  questionType  QuestionType? @map("question_type")
-
-  quiz     Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  answers  Answer[]
-}
-
-model Answer {
-  id          Int      @id @default(autoincrement())
-  questionId  Int?     @map("question_id")
-  answerText  String   @map("answer_text")
-  isCorrect   Boolean  @default(false) @map("is_correct")
-
-  question Question? @relation(fields: [questionId], references: [id], onDelete: Cascade)
-}
-
-model Enrollment {
-  id         Int       @id @default(autoincrement())
-  userId     Int       @map("user_id")
-  courseId   Int       @map("course_id")
-  enrolledAt DateTime  @default(now()) @map("enrolled_at")
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, courseId])
-}
-
-model Progress {
-  id         Int            @id @default(autoincrement())
-  userId     Int            @map("user_id")
-  lessonId   Int            @map("lesson_id")
-  status     ProgressStatus @default(not_started)
-  updatedAt  DateTime       @default(now()) @map("updated_at")
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, lessonId])
 }
