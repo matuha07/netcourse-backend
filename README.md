@@ -13,7 +13,7 @@ DATABASE_URL="postgresql://dummy:dummypass@localhost:5433/netskills?schema=publi
 docker compose up
 ```
    
-5. Синхронизировать таблицы (также создаст БД, если нету):
+4. Синхронизировать таблицы (также создаст БД, если нету):
 ```
 npx prisma migrate dev
 ```
