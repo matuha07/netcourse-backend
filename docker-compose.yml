@@ -1,14 +1,14 @@
-version: '3.8'
+version: "3.8"
 services:
   postgres:
     image: postgres:10.3
     restart: always
     environment:
-      - POSTGRES_USER=motya
-      - POSTGRES_PASSWORD=sigma
+      - POSTGRES_USER=dummy
+      - POSTGRES_PASSWORD=dummypass
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
-      - '5433:5432'
+      - "5433:5432"
 volumes:
   postgres:
