@@ -12,7 +12,7 @@ DATABASE_URL="postgresql://dummy:dummypass@localhost:5433/netskills?schema=publi
 ```
 docker compose up
 ```
-   
+
 4. Синхронизировать таблицы (также создаст БД, если нету):
 ```
 npx prisma migrate dev
@@ -20,5 +20,5 @@ npx prisma migrate dev
 
 5. Запустить сервер:
 ```
-npx ts-node src/server.ts
+npm run dev
 ```
