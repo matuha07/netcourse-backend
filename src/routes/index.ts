@@ -6,33 +6,44 @@ import lessonRoutes from "./lessons";
 import quizRoutes from "./quizzes";
 import questionRoutes from "./questions";
 import answerRoutes from "./answers";
+import enrollmentRoutes from "./enrollments";
+import progressRoutes from "./progress";
 
 const router = Router();
 
+// users
 router.use("/users", userRoutes);
-
-// курсы
+// courses
 router.use("/courses", courseRoutes);
 
-// секции внутри курсов
+//course's enrollments
+router.use("/courses/:courseId/enrollments", enrollmentRoutes);
+
+//course's sections
 router.use("/courses/:courseId/sections", sectionRoutes);
 
-// уроки внутри секций
+//section's lessons
 router.use("/courses/:courseId/sections/:sectionId/lessons", lessonRoutes);
 
-// квизы внутри уроков
+//lesson's progress
+router.use(
+  "/courses/:courseId/sections/:sectionId/lessons/:lessonId/progress",
+  progressRoutes,
+);
+
+//lesson's quiz
 router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes",
   quizRoutes,
 );
 
-// вопросы внутри тестов
+//quiz questions
 router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions",
   questionRoutes,
 );
 
-// ответы внутри вопросов
+//quiz answers
 router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions/:questionId/answers",
   answerRoutes,
