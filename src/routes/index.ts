@@ -9,11 +9,15 @@ import questionRoutes from "./questions";
 import answerRoutes from "./answers";
 import enrollmentRoutes from "./enrollments";
 import progressRoutes from "./progress";
+import urlShort from "./shorten";
 
 const router = Router();
 
 // auth
 router.use("/auth", authRoutes);
+
+// bitch ass url shortener
+router.use("/shorten", urlShort);
 
 // users
 router.use("/users", userRoutes);
