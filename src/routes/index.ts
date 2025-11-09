@@ -10,6 +10,7 @@ import answerRoutes from "./answers";
 import enrollmentRoutes from "./enrollments";
 import progressRoutes from "./progress";
 import urlShort from "./shorten";
+import { urlRedirect } from "../controllers/urlController";
 
 const router = Router();
 
@@ -18,6 +19,9 @@ router.use("/auth", authRoutes);
 
 // bitch ass url shortener
 router.use("/shorten", urlShort);
+
+// url redirect
+router.use("/shorten/:short", urlRedirect);
 
 // users
 router.use("/users", userRoutes);

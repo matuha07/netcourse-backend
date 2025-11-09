@@ -28,3 +28,21 @@ export const urlShort = async (req: Request, res: Response) => {
     original_url: url,
   });
 };
+
+export const urlRedirect = async (req: Request, res: Response) => {
+  const { short } = req.params;
+
+  const link = await prisma.links.findUnique({
+    where: { short_url: short },
+    select: { original_url: true },
+  });
+
+  if (!link) return res.status(404).send("Not found");
+
+  await prisma.links.update({
+    where: { short_url: short },
+    data: { hits: { increment: 1 } },
+  });
+
+  res.redirect(link.original_url);
+};
