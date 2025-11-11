@@ -20,6 +20,14 @@ model User {
   @@map("users")
 }
 
+model Admin {
+  id Int @id(map: "Admin_pkey") @default(autoincrement())
+  username String?
+  password String?
+
+  @@map("admins")
+}
+
 model Course {
   id          Int          @id(map: "Course_pkey") @default(autoincrement())
   title       String
