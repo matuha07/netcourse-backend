@@ -113,6 +113,14 @@ model Progress {
   @@map("progress")
 }
 
+model links {
+  id Int @id @default(autoincrement())
+  short_url String @unique
+  original_url String
+  created_at DateTime @default(now())
+  hits Int @default(0)
+}
+
 enum ContentType {
   video
   text
