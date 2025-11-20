@@ -7,8 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  USER
+  STUDENT
+}
+
 model User {
-  id          Int          @id(map: "User_pkey") @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   email       String       @unique
   password    String
   username    String?
@@ -17,15 +23,9 @@ model User {
   enrollments Enrollment[]
   progress    Progress[]
 
+  role        Role         @default(USER)
+
   @@map("users")
-}
-
-model Admin {
-  id Int @id(map: "Admin_pkey") @default(autoincrement())
-  username String?
-  password String?
-
-  @@map("admins")
 }
 
 model Course {

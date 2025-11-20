@@ -22,12 +22,18 @@ export const register = async (req: Request, res: Response) => {
         password: hashedPassword,
         username,
         avatarUrl,
+        role: "USER",
       },
     });
 
     res.status(201).json({
       message: "User registered successfully",
-      user: { id: user.id, email: user.email, username: user.username },
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to register user" });
@@ -48,14 +54,21 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email }, SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.json({
       message: "Login successful",
       token,
-      user: { id: user.id, email: user.email, username: user.username },
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: "Login failed" });
