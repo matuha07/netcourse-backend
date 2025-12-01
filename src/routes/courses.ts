@@ -6,10 +6,12 @@ import {
   updateCourse,
   deleteCourse,
 } from "../controllers/courseController";
+import { validate } from "../middleware/validate";
+import { createCourseSchema } from "../validators/courseSchemas";
 
 const router = Router();
 
-router.post("/", createCourse);
+router.post("/", validate(createCourseSchema), createCourse);
 router.get("/", getAllCourses);
 router.get("/:id", getCourseById);
 router.put("/:id", updateCourse);

@@ -3,7 +3,7 @@ import prisma from "../prisma";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, username, avatarUrl } = req.body;
+    const { email, password, username, avatarUrl } = (req as any).validated.body;
     const user = await prisma.user.create({
       data: {
         email,
@@ -34,7 +34,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, username, avatarUrl } = req.body;
+    const { email, password, username, avatarUrl } = (req as any).validated.body;
     const { id } = req.params;
     const user = await prisma.user.update({
       where: { id: Number(id) },

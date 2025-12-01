@@ -6,13 +6,15 @@ import {
   updateSection,
   deleteSection,
 } from "../controllers/sectionController";
+import { validate } from "../middleware/validate";
+import { createSectionSchema, updateSectionSchema } from "../validators/sectionSchemas";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
-router.post("/", createSection);
+router.post("/", validate(createSectionSchema), createSection);
 router.get("/", getAllSections);
-router.get("/:id", getSectionById);
-router.put("/:id", updateSection);
-router.delete("/:id", deleteSection);
+router.get("/:sectionId", getSectionById);
+router.put("/:sectionId", validate(updateSectionSchema), updateSection);
+router.delete("/:sectionId", deleteSection);
 
 export default router;

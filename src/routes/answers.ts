@@ -6,13 +6,15 @@ import {
   updateAnswer,
   deleteAnswer,
 } from "../controllers/answerController";
+import { createAnswerSchema, updateAnswerSchema } from "../validators/answerSchemas";
+import { validate } from "../middleware/validate";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
-router.post("/", createAnswer);
+router.post("/", validate(createAnswerSchema), createAnswer);
 router.get("/", getAllAnswers);
 router.get("/:id", getAnswerById);
-router.put("/:id", updateAnswer);
+router.put("/:id", validate(updateAnswerSchema), updateAnswer);
 router.delete("/:id", deleteAnswer);
 
 export default router;

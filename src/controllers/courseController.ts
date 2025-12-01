@@ -3,7 +3,7 @@ import prisma from "../prisma";
 
 export const createCourse = async (req: Request, res: Response) => {
   try {
-    const { title, description, category } = req.body;
+    const { title, description, category } = (req as any).validated.body;
     const course = await prisma.course.create({
       data: { title, description, category },
     });
@@ -54,7 +54,7 @@ export const getCourseById = async (req: Request, res: Response) => {
 export const updateCourse = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, category } = req.body;
+    const { title, description, category } = (req as any).validated.body;
 
     const updated = await prisma.course.update({
       where: { id: Number(id) },

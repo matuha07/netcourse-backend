@@ -3,9 +3,10 @@ import prisma from "../prisma";
 
 export const createAnswer = async (req: Request, res: Response) => {
   try {
-    const { questionId, answerText, isCorrect } = req.body;
+    const { questionId } = req.params;
+    const { answerText, isCorrect } = (req as any).validated.body;
     const answer = await prisma.answer.create({
-      data: { questionId, answerText, isCorrect },
+      data: { questionId: Number(questionId), answerText, isCorrect },
     });
     res.status(201).json(answer);
   } catch {
@@ -41,7 +42,7 @@ export const getAnswerById = async (req: Request, res: Response) => {
 export const updateAnswer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { answerText, isCorrect } = req.body;
+    const { answerText, isCorrect } = (req as any).validated.body;
     const updated = await prisma.answer.update({
       where: { id: Number(id) },
       data: { answerText, isCorrect },

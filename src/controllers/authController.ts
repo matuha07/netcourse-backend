@@ -7,7 +7,7 @@ const SECRET = process.env.JWT_SECRET || "secret_key";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, username, avatarUrl } = req.body;
+    const { email, password, username, avatarUrl } = (req as any).validated.body;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -42,7 +42,7 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = (req as any).validated.body;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {

@@ -3,7 +3,7 @@ import prisma from "../prisma";
 
 export const createEnrollment = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.body;
+    const { userId } = (req as any).validated.body;
     const { courseId } = req.params;
     const enrollment = await prisma.enrollment.create({
       data: {

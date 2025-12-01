@@ -3,9 +3,10 @@ import prisma from "../prisma";
 
 export const createSection = async (req: Request, res: Response) => {
   try {
-    const { courseId, title, orderIndex } = req.body;
+    const { courseId} = req.params;
+    const { title, orderIndex } = (req as any).validated.body;
     const section = await prisma.section.create({
-      data: { courseId, title, orderIndex },
+      data: { courseId: Number(courseId), title, orderIndex },
     });
     res.status(201).json(section);
   } catch (error) {
@@ -31,9 +32,9 @@ export const getAllSections = async (req: Request, res: Response) => {
 
 export const getSectionById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { sectionId } = req.params;
     const section = await prisma.section.findUnique({
-      where: { id: Number(id) },
+      where: { id: Number(sectionId) },
       include: {
         lessons: true,
         course: true,
@@ -54,7 +55,7 @@ export const getSectionById = async (req: Request, res: Response) => {
 export const updateSection = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, orderIndex } = req.body;
+    const { title, orderIndex } = (req as any).validated.body;
 
     const updated = await prisma.section.update({
       where: { id: Number(id) },

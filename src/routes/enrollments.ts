@@ -4,10 +4,12 @@ import {
   getEnrollments,
   deleteEnrollment,
 } from "../controllers/enrollmentController";
+import { validate } from "../middleware/validate";
+import { enrollSchema } from "../validators/enrollmentSchemas";
 
 const router = Router({ mergeParams: true });
 
-router.post("/", createEnrollment);
+router.post("/", validate(enrollSchema) ,createEnrollment);
 router.get("/", getEnrollments);
 router.delete("/:enrollmentId", deleteEnrollment);
 

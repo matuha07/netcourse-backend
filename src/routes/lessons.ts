@@ -6,10 +6,12 @@ import {
   updateLesson,
   deleteLesson,
 } from "../controllers/lessonController";
+import { validate } from "../middleware/validate";
+import { createLessonSchema } from "../validators/lessonSchemas";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
-router.post("/", createLesson);
+router.post("/", validate(createLessonSchema) ,createLesson);
 router.get("/", getAllLessons);
 router.get("/:id", getLessonById);
 router.put("/:id", updateLesson);

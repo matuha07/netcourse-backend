@@ -1,0 +1,23 @@
+import { z } from "zod";
+
+export const createUserSchema = z.object({
+  body: z.object({
+    email: z.email(),
+    password: z.string().min(6),
+    role: z.string().optional(),
+  }),
+});
+
+export type CreateUserInput = z.infer<typeof createUserSchema>["body"];
+
+export const updateUserSchema = z.object({
+  params: z.object({
+    id: z.string(),
+  }),
+  body: z.object({
+    email: z.email().optional(),
+    role: z.string().optional(),
+  }),
+});
+
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
