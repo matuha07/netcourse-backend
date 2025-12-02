@@ -1,19 +1,18 @@
 import { Router } from "express";
 import {
   createQuestion,
-  getAllQuestions,
-  getQuestionById,
   updateQuestion,
   deleteQuestion,
-} from "../controllers/questionController";
-import { validate } from "../middleware/validate";
-import { createQuestionSchema, updateQuestionSchema } from "../validators/questionSchemas";
+} from "../../controllers/questionController"
+import { createQuestionSchema, updateQuestionSchema } from "../../validators/questionSchemas";
+import { authenticate, requireRole } from "../../middleware/authMiddleware";
+import { validate } from "../../middleware/validate";
 
 const router = Router({ mergeParams: true });
 
+router.use(authenticate, requireRole(["ADMIN"]))
+
 router.post("/", validate(createQuestionSchema), createQuestion);
-router.get("/", getAllQuestions);
-router.get("/:id", getQuestionById);
 router.put("/:id", validate(updateQuestionSchema), updateQuestion);
 router.delete("/:id", deleteQuestion);
 

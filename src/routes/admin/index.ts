@@ -1,0 +1,43 @@
+import { Router } from "express";
+import courseRoutes from "./courses";
+import sectionRoutes from "./sections";
+import lessonRoutes from "./lessons";
+import quizRoutes from "./quizzes";
+import questionRoutes from "./questions";
+import answerRoutes from "./answers";
+import userRoutes from "./users";
+
+const router = Router();
+
+
+// courses
+router.use("/courses", courseRoutes);
+
+
+// course's sections
+router.use("/courses/:courseId/sections", sectionRoutes);
+
+// section's lessons
+router.use("/courses/:courseId/sections/:sectionId/lessons", lessonRoutes);
+
+// user's 
+router.use("/users", userRoutes)
+// lesson's quizzes
+router.use(
+  "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes",
+  quizRoutes,
+);
+
+// quiz questions
+router.use(
+  "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions",
+  questionRoutes,
+);
+
+// quiz answers
+router.use(
+  "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions/:questionId/answers",
+  answerRoutes,
+);
+
+export default router;

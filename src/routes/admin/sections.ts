@@ -1,19 +1,19 @@
 import { Router } from "express";
 import {
   createSection,
-  getAllSections,
-  getSectionById,
   updateSection,
   deleteSection,
-} from "../controllers/sectionController";
-import { validate } from "../middleware/validate";
-import { createSectionSchema, updateSectionSchema } from "../validators/sectionSchemas";
+} from "../../controllers/sectionController"
+import { createSectionSchema, updateSectionSchema } from "../../validators/sectionSchemas";
+import { authenticate, requireRole } from "../../middleware/authMiddleware";
+import { validate } from "../../middleware/validate";
+
 
 const router = Router({ mergeParams: true });
 
+router.use(authenticate, requireRole(["ADMIN"]))
+
 router.post("/", validate(createSectionSchema), createSection);
-router.get("/", getAllSections);
-router.get("/:sectionId", getSectionById);
 router.put("/:sectionId", validate(updateSectionSchema), updateSection);
 router.delete("/:sectionId", deleteSection);
 

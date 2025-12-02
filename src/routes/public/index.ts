@@ -1,6 +1,5 @@
 import { Router } from "express";
 import authRoutes from "./auth";
-import userRoutes from "./users";
 import courseRoutes from "./courses";
 import sectionRoutes from "./sections";
 import lessonRoutes from "./lessons";
@@ -10,7 +9,7 @@ import answerRoutes from "./answers";
 import enrollmentRoutes from "./enrollments";
 import progressRoutes from "./progress";
 import urlShort from "./shorten";
-import { urlRedirect } from "../controllers/urlController";
+import { urlRedirect } from "../../controllers/urlController";
 
 const router = Router();
 
@@ -22,9 +21,6 @@ router.use("/shorten", urlShort);
 
 // url redirect
 router.use("/shorten/:short", urlRedirect);
-
-// users
-router.use("/users", userRoutes);
 
 // courses
 router.use("/courses", courseRoutes);

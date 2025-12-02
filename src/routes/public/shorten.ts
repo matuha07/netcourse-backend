@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { urlRedirect, urlShort } from "../controllers/urlController";
+import { urlRedirect, urlShort } from "../../controllers/urlController";
 
 const router = Router();
 
