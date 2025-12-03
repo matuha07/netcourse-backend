@@ -31,7 +31,6 @@ export const getAllLessons = async (req: Request, res: Response) => {
       where: { sectionId: Number(sectionId) }, 
       include: {
         section: true,
-        progress: true,
         quizzes: true,
       },
     });
@@ -51,7 +50,6 @@ export const getLessonById = async (req: Request, res: Response) => {
       where: { id: Number(id) },
       include: {
         section: true,
-        progress: true,
         quizzes: true,
       },
     });
