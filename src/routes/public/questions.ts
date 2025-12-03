@@ -7,9 +7,7 @@ import {
 
 const router = Router({ mergeParams: true });
 
-// public
 router.get("/", getAllQuestions);
 router.get("/:id", getQuestionById);
-
 
 export default router;

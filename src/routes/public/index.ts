@@ -8,6 +8,7 @@ import questionRoutes from "./questions";
 import answerRoutes from "./answers";
 import enrollmentRoutes from "./enrollments";
 import progressRoutes from "./progress";
+import userRoutes from "./users";
 import urlShort from "./shorten";
 import { urlRedirect } from "../../controllers/urlController";
 
@@ -22,6 +23,9 @@ router.use("/shorten", urlShort);
 // url redirect
 router.use("/shorten/:short", urlRedirect);
 
+// users
+router.use("/users", userRoutes);
+
 // courses
 router.use("/courses", courseRoutes);
 
@@ -34,11 +38,8 @@ router.use("/courses/:courseId/sections", sectionRoutes);
 // section's lessons
 router.use("/courses/:courseId/sections/:sectionId/lessons", lessonRoutes);
 
-// lesson's progress
-router.use(
-  "/courses/:courseId/sections/:sectionId/lessons/:lessonId/progress",
-  progressRoutes,
-);
+// progress
+router.use("/courses/:courseId/progress", progressRoutes);
 
 // lesson's quizzes
 router.use(

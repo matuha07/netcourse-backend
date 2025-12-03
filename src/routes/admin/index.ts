@@ -6,6 +6,8 @@ import quizRoutes from "./quizzes";
 import questionRoutes from "./questions";
 import answerRoutes from "./answers";
 import userRoutes from "./users";
+import progressRoutes from "./progress";
+
 
 const router = Router();
 
@@ -13,15 +15,19 @@ const router = Router();
 // courses
 router.use("/courses", courseRoutes);
 
-
 // course's sections
 router.use("/courses/:courseId/sections", sectionRoutes);
+
+// progress
+router.use("/courses/:courseId/progress", progressRoutes);
+
 
 // section's lessons
 router.use("/courses/:courseId/sections/:sectionId/lessons", lessonRoutes);
 
 // user's 
 router.use("/users", userRoutes)
+
 // lesson's quizzes
 router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes",

@@ -34,6 +34,7 @@ model Course {
   description String?
   category    String?
   enrollments Enrollment[]
+  progress    Progress[]
   sections    Section[]
 
   @@map("courses")
@@ -59,7 +60,6 @@ model Lesson {
   textContent String?      @map("text_content")
   orderIndex  Int          @default(0) @map("order_index")
   section     Section      @relation(fields: [sectionId], references: [id], onDelete: Cascade, map: "Lesson_section_id_fkey")
-  progress    Progress[]
   quizzes     Quiz[]
 
   @@map("lessons")
@@ -111,13 +111,13 @@ model Enrollment {
 model Progress {
   id        Int            @id(map: "Progress_pkey") @default(autoincrement())
   userId    Int            @map("user_id")
-  lessonId  Int            @map("lesson_id")
+  courseId  Int            @map("course_id")
   status    ProgressStatus @default(not_started)
   updatedAt DateTime       @default(now()) @map("updated_at")
-  lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade, map: "Progress_lesson_id_fkey")
+  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Progress_user_id_fkey")
 
-  @@unique([userId, lessonId], map: "Progress_user_id_lesson_id_key")
+  @@unique([userId, courseId])
   @@map("progress")
 }
 

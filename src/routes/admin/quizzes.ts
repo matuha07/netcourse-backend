@@ -3,6 +3,8 @@ import {
   createQuiz,
   updateQuiz,
   deleteQuiz,
+  getAllQuizzes,
+  getQuizById,
 } from "../../controllers/quizController"
 import { createQuizSchema, updateQuizSchema } from "../../validators/quizSchemas";
 import { authenticate, requireRole } from "../../middleware/authMiddleware";
@@ -13,6 +15,8 @@ const router = Router({ mergeParams: true });
 
 router.use(authenticate, requireRole(["ADMIN"]))
 
+router.get("/", getAllQuizzes);
+router.get("/:id", getQuizById);
 router.post("/", validate(createQuizSchema), createQuiz);
 router.put("/:id", validate(updateQuizSchema), updateQuiz);
 router.delete("/:id", deleteQuiz);

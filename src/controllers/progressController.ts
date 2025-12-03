@@ -1,30 +1,100 @@
 import { Request, Response } from "express";
 import prisma from "../prisma";
 
-export const getLessonProgress = async (req: Request, res: Response) => {
-  try {
-    const { lessonId } = req.params;
-    const progress = await prisma.progress.findMany({
-      where: { lessonId: Number(lessonId) },
-      include: { user: true },
-    });
-    res.json(progress);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch progress" });
-  }
+// public
+export const getUserProgress = async (req: Request, res: Response) => {
+  const { courseId } = req.params;
+  const userId = (req as any).user.id;
+
+  const progress = await prisma.progress.findUnique({
+    where: {
+      userId_courseId: {
+        userId,
+        courseId: Number(courseId),
+      },
+    },
+  });
+
+  if (!progress) return res.json({ status: "not_started" });
+
+  res.json(progress);
 };
 
-export const updateProgress = async (req: Request, res: Response) => {
-  try {
-    const { lessonId } = req.params;
-    const { userId, status } = req.body;
-    const updated = await prisma.progress.upsert({
-      where: { userId_lessonId: { userId, lessonId: Number(lessonId) } },
-      update: { status },
-      create: { userId, lessonId: Number(lessonId), status },
-    });
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update progress" });
+export const updateUserProgress = async (req: Request, res: Response) => {
+  const { courseId } = req.params;
+  const { status } = req.body;
+  const userId = (req as any).user.id;
+
+  const progress = await prisma.progress.upsert({
+    where: {
+      userId_courseId: {
+        userId,
+        courseId: Number(courseId),
+      },
+    },
+    update: { status },
+    create: {
+      userId,
+      courseId: Number(courseId),
+      status,
+    },
+  });
+
+  res.json(progress);
+};
+
+export const getAllCourseProgress = async (req: Request, res: Response) => {
+  const { courseId } = req.params;
+
+  const progress = await prisma.progress.findMany({
+    where: { courseId: Number(courseId) },
+    include: { user: true },
+  });
+
+  res.json(progress);
+};
+
+// admin
+
+export const getUserProgressAdmin = async (req: Request, res: Response) => {
+  const { userId, courseId } = req.params;
+
+  const progress = await prisma.progress.findUnique({
+    where: {
+      userId_courseId: {
+        userId: Number(userId),
+        courseId: Number(courseId),
+      },
+    },
+  });
+
+  if (!progress) return res.json({ status: "not_started" });
+
+  res.json(progress);
+};
+
+export const updateUserProgressAdmin = async (req: Request, res: Response) => {
+  const { courseId, userId } = req.params;
+  const { status } = req.body;
+
+  if (!["not_started", "in_progress", "completed"].includes(status)) {
+    return res.status(400).json({ error: "Invalid status" });
   }
+
+  const progress = await prisma.progress.upsert({
+    where: {
+      userId_courseId: {
+        userId: Number(userId),
+        courseId: Number(courseId),
+      },
+    },
+    update: { status },
+    create: {
+      userId: Number(userId),
+      courseId: Number(courseId),
+      status,
+    },
+  });
+
+  res.json(progress);
 };

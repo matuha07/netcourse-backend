@@ -2,10 +2,6 @@ import { z } from "zod";
 
 export const updateProgressSchema = z.object({
   body: z.object({
-    lessonId: z.string(),
-    userId: z.string(),
-    completed: z.boolean(),
+    status: z.enum(["not_started", "in_progress", "completed"]),
   }),
 });
-
-export type UpdateProgressInput = z.infer<typeof updateProgressSchema>["body"];

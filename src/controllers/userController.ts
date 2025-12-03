@@ -36,8 +36,16 @@ export const updateUser = async (req: Request, res: Response) => {
   try {
     const { email, password, username, avatarUrl } = (req as any).validated.body;
     const { id } = req.params;
+    const currentUser = (req as any).user;
+
+    const targetUserId = Number(id);
+
+    if (currentUser.role !== 'ADMIN' && currentUser.id !== targetUserId) {
+      return res.status(403).json({ error: "forbidden: you can only update your own account" });
+    }
+
     const user = await prisma.user.update({
-      where: { id: Number(id) },
+      where: { id: targetUserId },
       data: {
         email,
         password,
@@ -54,8 +62,16 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const currentUser = (req as any).user;
+
+    const targetUserId = Number(id);
+
+    if (currentUser.role !== 'ADMIN' && currentUser.id !== targetUserId) {
+      return res.status(403).json({ error: "forbidden: you can only delete your own account" });
+    }
+
     await prisma.user.delete({
-      where: { id: Number(id) },
+      where: { id: targetUserId },
     });
     res.status(204).send();
   } catch (error) {
@@ -66,16 +82,26 @@ export const deleteUser = async (req: Request, res: Response) => {
 export const getUserById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const currentUser = (req as any).user;
+    
+    const targetUserId = Number(id);
+
+    if (currentUser.role !== 'ADMIN' && currentUser.id !== targetUserId) {
+      return res.status(403).json({ error: "forbidden: you can only view your own account" });
+    }
+
     const user = await prisma.user.findUnique({
-      where: { id: Number(id) },
+      where: { id: targetUserId },
       include: {
         enrollments: true,
         progress: true,
       },
     });
+    
     if (!user) {
       return res.status(404).json({ error: "user not found" });
     }
+    
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: "failed to fetch user" });
