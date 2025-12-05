@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Admin - Users</title>
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <link rel="stylesheet" href="./css/adminlte.css" />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+        />
+        <link rel="preload" href="./css/adminlte.css" as="style" />
+        <link rel="stylesheet" href="./css/adminlte.css" />
+
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
+            crossorigin="anonymous"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/styles/overlayscrollbars.min.css"
+            crossorigin="anonymous"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+            crossorigin="anonymous"
+        />
+        <style>
+            .small-avatar {
+                width: 32px;
+                height: 32px;
+                border-radius: 4px;
+                object-fit: cover;
+            }
+        </style>
+    </head>
+    <body class="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary">
+        <script>
+            // AUTH CHECK
+            (function () {
+                const token = localStorage.getItem("token");
+                if (!token) window.location.href = "./login.html";
+            })();
+            const API = "http://46.101.144.175:3000/api";
+            function authHeaders() {
+                return {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + localStorage.getItem("token"),
+                };
+            }
+        </script>
+
+        <div class="app-wrapper">
+            <!-- minimal header -->
+            <nav class="app-header navbar navbar-expand bg-body">
+                <div class="container-fluid">
+                    <a class="nav-link" data-lte-toggle="sidebar" href="#"
+                        ><i class="bi bi-list"></i
+                    ></a>
+                    <div class="ms-auto">
+                        <button id="logoutBtn" class="btn btn-sm btn-danger">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- sidebar copy (small) -->
+            <aside
+                class="app-sidebar bg-body-secondary shadow"
+                data-bs-theme="dark"
+            >
+                <div class="sidebar-brand">
+                    <a href="./index.html" class="brand-link"
+                        ><img
+                            src="./assets/img/AdminLTELogo.png"
+                            class="brand-image opacity-75"
+                        />
+                        <span class="brand-text">Admin Panel</span></a
+                    >
+                </div>
+                <div class="sidebar-wrapper">
+                    <nav class="mt-2">
+                        <ul
+                            class="nav sidebar-menu flex-column"
+                            data-lte-toggle="treeview"
+                            role="menu"
+                        >
+                            <!-- Dashboard -->
+                            <li class="nav-item">
+                                <a href="./index.html" class="nav-link">
+                                    <i class="nav-icon bi bi-speedometer2"></i>
+                                    <p>Dashboard</p>
+                                </a>
+                            </li>
+
+                            <!-- Users -->
+                            <li class="nav-item">
+                                <a href="./users.html" class="nav-link active">
+                                    <i class="nav-icon bi bi-people"></i>
+                                    <p>Users</p>
+                                </a>
+                            </li>
+
+                            <!-- Courses -->
+                            <li class="nav-item">
+                                <a href="./courses.html" class="nav-link">
+                                    <i class="nav-icon bi bi-journal-text"></i>
+                                    <p>Courses</p>
+                                </a>
+                            </li>
+
+                            <!-- Lessons -->
+                            <li class="nav-item">
+                                <a href="./lessons.html" class="nav-link">
+                                    <i
+                                        class="nav-icon bi bi-collection-play"
+                                    ></i>
+                                    <p>Lessons</p>
+                                </a>
+                            </li>
+
+                            <!-- Tests -->
+                            <li class="nav-item">
+                                <a href="./tests.html" class="nav-link">
+                                    <i
+                                        class="nav-icon bi bi-question-circle"
+                                    ></i>
+                                    <p>Tests</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </aside>
+
+            <main class="app-main">
+                <div class="app-content-header container-fluid">
+                    <h3 class="mb-0">Users</h3>
+                </div>
+
+                <div class="app-content container-fluid mt-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex mb-3">
+                                <button
+                                    id="createBtn"
+                                    class="btn btn-primary me-2"
+                                >
+                                    Create User
+                                </button>
+                                <input
+                                    id="searchInput"
+                                    class="form-control w-25"
+                                    placeholder="Search email or username"
+                                />
+                            </div>
+                            <div id="tableWrap" class="table-responsive">
+                                <table
+                                    class="table table-striped"
+                                    id="usersTable"
+                                >
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Avatar</th>
+                                            <th>Email</th>
+                                            <th>Username</th>
+                                            <th>Role</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Modals (Create/Edit) -->
+        <div class="modal" id="userModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form id="userForm">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="userModalTitle">
+                                Create User
+                            </h5>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="userId" />
+                            <div class="mb-2">
+                                <label>Email</label
+                                ><input
+                                    id="u_email"
+                                    type="email"
+                                    class="form-control"
+                                    required
+                                />
+                            </div>
+                            <div class="mb-2">
+                                <label>Password (only for create)</label
+                                ><input
+                                    id="u_password"
+                                    type="password"
+                                    class="form-control"
+                                />
+                            </div>
+                            <div class="mb-2">
+                                <label>Username</label
+                                ><input id="u_username" class="form-control" />
+                            </div>
+                            <div class="mb-2">
+                                <label>Avatar URL</label
+                                ><input id="u_avatar" class="form-control" />
+                            </div>
+                            <div class="mb-2">
+                                <label>Role</label>
+                                <select id="u_role" class="form-select">
+                                    <option value="USER">USER</option>
+                                    <option value="ADMIN">ADMIN</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button
+                                type="button"
+                                id="modalClose"
+                                class="btn btn-secondary"
+                            >
+                                Close
+                            </button>
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                                id="modalSave"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // helpers
+            function el(tag, attrs = {}, ...children) {
+                const e = document.createElement(tag);
+                for (const k in attrs) e.setAttribute(k, attrs[k]);
+                children.forEach((c) => {
+                    if (typeof c === "string")
+                        e.appendChild(document.createTextNode(c));
+                    else if (c) e.appendChild(c);
+                });
+                return e;
+            }
+
+            const usersTbody = document.querySelector("#usersTable tbody");
+            const searchInput = document.getElementById("searchInput");
+            const createBtn = document.getElementById("createBtn");
+            const userModal = document.getElementById("userModal");
+            const userForm = document.getElementById("userForm");
+            const modalClose = document.getElementById("modalClose");
+            const userModalTitle = document.getElementById("userModalTitle");
+
+            async function fetchUsers() {
+                try {
+                    const response = await fetch(
+                        "http://46.101.144.175:3000/api/admin/users",
+                        {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization:
+                                    "Bearer " + localStorage.getItem("token"),
+                            },
+                        },
+                    );
+
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch users");
+                    }
+
+                    const data = await response.json();
+                    renderUsers(data);
+                } catch (e) {
+                    console.error(e);
+                    usersTbody.innerHTML =
+                        '<tr><td colspan="7">Failed to load users</td></tr>';
+                }
+            }
+
+            function renderUsers(users) {
+                usersTbody.innerHTML = "";
+                const q = searchInput.value.trim().toLowerCase();
+                users
+                    .filter(
+                        (u) =>
+                            !q ||
+                            (u.email || "").toLowerCase().includes(q) ||
+                            (u.username || "").toLowerCase().includes(q),
+                    )
+                    .forEach((u) => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `<td>${u.id}</td>
+        <td>${u.avatarUrl ? `<img src="${u.avatarUrl}" class="small-avatar" />` : ""}</td>
+        <td>${u.email}</td>
+        <td>${u.username || ""}</td>
+        <td>${u.role}</td>
+        <td>${new Date(u.created_at).toLocaleString()}</td>
+        <td>
+          <button class="btn btn-sm btn-secondary edit-btn" data-id="${u.id}">Edit</button>
+          <button class="btn btn-sm btn-danger del-btn" data-id="${u.id}">Delete</button>
+        </td>`;
+                        usersTbody.appendChild(tr);
+                    });
+                document
+                    .querySelectorAll(".edit-btn")
+                    .forEach((b) => b.addEventListener("click", onEdit));
+                document
+                    .querySelectorAll(".del-btn")
+                    .forEach((b) => b.addEventListener("click", onDelete));
+            }
+
+            async function onEdit(e) {
+                const id = e.currentTarget.dataset.id;
+
+                try {
+                    const res = await fetch(API + "/admin/users/" + id, {
+                        headers: authHeaders(),
+                    });
+
+                    if (!res.ok) throw new Error("User not found");
+
+                    const u = await res.json();
+
+                    userModalTitle.textContent = "Edit User";
+                    document.getElementById("userId").value = u.id;
+                    document.getElementById("u_email").value = u.email;
+                    document.getElementById("u_username").value =
+                        u.username || "";
+                    document.getElementById("u_avatar").value =
+                        u.avatarUrl || "";
+                    document.getElementById("u_role").value = u.role || "USER";
+                    document.getElementById("u_password").value = "";
+
+                    showModal(userModal);
+                } catch (err) {
+                    alert("Failed to load user");
+                    console.error(err);
+                }
+            }
+
+            async function onDelete(e) {
+                const id = e.currentTarget.dataset.id;
+
+                if (!confirm("Delete user ID " + id + "?")) return;
+
+                try {
+                    const res = await fetch(API + "/admin/users/" + id, {
+                        method: "DELETE",
+                        headers: authHeaders(),
+                    });
+
+                    if (!res.ok) throw new Error("Delete failed");
+
+                    await fetchUsers();
+                } catch (err) {
+                    alert("Delete failed");
+                    console.error(err);
+                }
+            }
+
+            createBtn.addEventListener("click", () => {
+                userModalTitle.textContent = "Create User";
+                document.getElementById("userId").value = "";
+                document.getElementById("u_email").value = "";
+                document.getElementById("u_password").value = "";
+                document.getElementById("u_username").value = "";
+                document.getElementById("u_avatar").value = "";
+                document.getElementById("u_role").value = "USER";
+                showModal(userModal);
+            });
+
+            userForm.addEventListener("submit", async (ev) => {
+                ev.preventDefault();
+                const id = document.getElementById("userId").value;
+                const payload = {
+                    email: document.getElementById("u_email").value.trim(),
+                    username: document
+                        .getElementById("u_username")
+                        .value.trim(),
+                    avatarUrl: document.getElementById("u_avatar").value.trim(),
+                    role: document.getElementById("u_role").value,
+                };
+                const pass = document.getElementById("u_password").value;
+                try {
+                    let res;
+
+                    if (id) {
+                        // UPDATE
+                        if (pass) payload.password = pass;
+
+                        res = await fetch(API + "/admin/users/" + id, {
+                            method: "PUT",
+                            headers: authHeaders(),
+                            body: JSON.stringify(payload),
+                        });
+                    } else {
+                        // CREATE
+                        if (!pass) {
+                            alert("Password required for create");
+                            return;
+                        }
+                        payload.password = pass;
+
+                        res = await fetch(API + "/admin/users", {
+                            method: "POST",
+                            headers: authHeaders(),
+                            body: JSON.stringify(payload),
+                        });
+                    }
+
+                    if (!res.ok) {
+                        const j = await res.json().catch(() => ({}));
+                        throw new Error(j.message || "Save failed");
+                    }
+                    hideModal(userModal);
+                    await fetchUsers();
+                } catch (err) {
+                    alert("Save failed: " + err.message);
+                    console.error(err);
+                }
+            });
+
+            modalClose.addEventListener("click", () => hideModal(userModal));
+
+            // simple modal show/hide
+            function showModal(m) {
+                m.style.display = "block";
+                m.classList.add("show");
+                m.setAttribute("aria-modal", "true");
+                m.removeAttribute("aria-hidden");
+            }
+            function hideModal(m) {
+                m.style.display = "none";
+                m.classList.remove("show");
+                m.removeAttribute("aria-modal");
+                m.setAttribute("aria-hidden", "true");
+            }
+
+            // logout
+            document
+                .getElementById("logoutBtn")
+                .addEventListener("click", () => {
+                    localStorage.removeItem("token");
+                    window.location.href = "./login.html";
+                });
+
+            // search
+            searchInput.addEventListener("input", () => fetchUsers()); // refetch and filter client-side
+
+            // initial
+            fetchUsers();
+        </script>
+
+        <script src="./js/adminlte.js"></script>
+    </body>
+</html>
