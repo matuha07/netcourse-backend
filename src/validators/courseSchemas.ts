@@ -3,7 +3,8 @@ import { z } from "zod";
 export const createCourseSchema = z.object({
   body: z.object({
     title: z.string().min(3),
-    description: z.string().optional(),
+    description: z.string().optional().nullable(),
+    category: z.string().optional().nullable(),
   }),
 });
 
@@ -14,8 +15,9 @@ export const updateCourseSchema = z.object({
     id: z.string(),
   }),
   body: z.object({
-    title: z.string().optional(),
-    description: z.string().optional(),
+    title: z.string().optional().nullable(),
+    description: z.string().optional().nullable(),
+    category: z.string().optional().nullable(),
   }),
 });
 
