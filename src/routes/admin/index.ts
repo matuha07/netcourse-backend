@@ -8,9 +8,7 @@ import answerRoutes from "./answers";
 import userRoutes from "./users";
 import progressRoutes from "./progress";
 
-
 const router = Router();
-
 
 // courses
 router.use("/courses", courseRoutes);
@@ -21,12 +19,11 @@ router.use("/courses/:courseId/sections", sectionRoutes);
 // progress
 router.use("/courses/:courseId/progress", progressRoutes);
 
-
 // section's lessons
 router.use("/courses/:courseId/sections/:sectionId/lessons", lessonRoutes);
 
-// user's 
-router.use("/users", userRoutes)
+// user's
+router.use("/users", userRoutes);
 
 // lesson's quizzes
 router.use(
