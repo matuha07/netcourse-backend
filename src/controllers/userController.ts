@@ -3,7 +3,8 @@ import prisma from "../prisma";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, username, avatarUrl } = (req as any).validated.body;
+    const { email, password, username, avatarUrl } = (req as any).validated
+      .body;
     const user = await prisma.user.create({
       data: {
         email,
@@ -14,6 +15,14 @@ export const createUser = async (req: Request, res: Response) => {
     });
     res.status(201).json(user);
   } catch (error) {
+    console.error("Error creating user:", error);
+
+    if (error.code === "P2002") {
+      return res
+        .status(409)
+        .json({ error: "User with this email already exists" });
+    }
+
     res.status(500).json({ error: "Failed to create user" });
   }
 };
@@ -34,14 +43,17 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, username, avatarUrl } = (req as any).validated.body;
+    const { email, password, username, avatarUrl } = (req as any).validated
+      .body;
     const { id } = req.params;
     const currentUser = (req as any).user;
 
     const targetUserId = Number(id);
 
-    if (currentUser.role !== 'ADMIN' && currentUser.id !== targetUserId) {
-      return res.status(403).json({ error: "forbidden: you can only update your own account" });
+    if (currentUser.role !== "ADMIN" && currentUser.id !== targetUserId) {
+      return res
+        .status(403)
+        .json({ error: "forbidden: you can only update your own account" });
     }
 
     const user = await prisma.user.update({
@@ -66,8 +78,10 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     const targetUserId = Number(id);
 
-    if (currentUser.role !== 'ADMIN' && currentUser.id !== targetUserId) {
-      return res.status(403).json({ error: "forbidden: you can only delete your own account" });
+    if (currentUser.role !== "ADMIN" && currentUser.id !== targetUserId) {
+      return res
+        .status(403)
+        .json({ error: "forbidden: you can only delete your own account" });
     }
 
     await prisma.user.delete({
@@ -83,11 +97,13 @@ export const getUserById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const currentUser = (req as any).user;
-    
+
     const targetUserId = Number(id);
 
-    if (currentUser.role !== 'ADMIN' && currentUser.id !== targetUserId) {
-      return res.status(403).json({ error: "forbidden: you can only view your own account" });
+    if (currentUser.role !== "ADMIN" && currentUser.id !== targetUserId) {
+      return res
+        .status(403)
+        .json({ error: "forbidden: you can only view your own account" });
     }
 
     const user = await prisma.user.findUnique({
@@ -97,11 +113,11 @@ export const getUserById = async (req: Request, res: Response) => {
         progress: true,
       },
     });
-    
+
     if (!user) {
       return res.status(404).json({ error: "user not found" });
     }
-    
+
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: "failed to fetch user" });

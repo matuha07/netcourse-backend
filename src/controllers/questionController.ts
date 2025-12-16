@@ -17,11 +17,18 @@ export const createQuestion = async (req: Request, res: Response) => {
 
 export const getAllQuestions = async (req: Request, res: Response) => {
   try {
+    const { courseId, sectionId, lessonId, quizId } = req.params;
+    
     const questions = await prisma.question.findMany({
-      include: { answers: true, quiz: true },
+      where: { 
+        quizId: Number(quizId) 
+      },
+      include: { 
+        answers: true 
+      }
     });
     res.json(questions);
-  } catch {
+  } catch (error) {
     res.status(500).json({ error: "Failed to fetch questions" });
   }
 };

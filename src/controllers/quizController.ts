@@ -16,7 +16,12 @@ export const createQuiz = async (req: Request, res: Response) => {
 
 export const getAllQuizzes = async (req: Request, res: Response) => {
   try {
+    const { courseId, sectionId, lessonId } = req.params; 
+    
     const quizzes = await prisma.quiz.findMany({
+      where: { 
+        lessonId: Number(lessonId) 
+      },
       include: {
         lesson: true,
         questions: true,
