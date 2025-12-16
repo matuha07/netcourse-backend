@@ -18,7 +18,8 @@ export const updateUserSchema = z.object({
   body: z.object({
     email: z.email().optional(),
     username: z.string().optional(),
-    avatarUrl: z.string(),
+    avatarUrl: z.string().optional(),
+    password: z.string().optional(),
   }),
 });
 
