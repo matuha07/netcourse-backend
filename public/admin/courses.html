@@ -11,13 +11,13 @@
         />
     </head>
     <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
-        <script>
+        <!--<script>
             const token = localStorage.getItem("token");
             if (!token) {
                 alert("No token found. Login first.");
                 window.location.href = "./login.html";
             }
-        </script>
+        </script>-->
 
         <div class="app-wrapper">
             <!-- SIDEBAR -->
@@ -290,7 +290,7 @@
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             });
 
-            // Logout
+            Logout;
             document
                 .getElementById("logoutBtn")
                 .addEventListener("click", () => {
