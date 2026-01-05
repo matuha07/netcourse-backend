@@ -17,10 +17,32 @@ export const verifyTurnstile = async (
 ) => {
   try {
     console.log("TURNSTILE", req.method, req.originalUrl);
+    
+    // Пропускаем админские роуты
     if (req.path.startsWith("/admin") || req.path.startsWith("/api/admin")) {
+      console.log("✅ Admin route bypassed");
       return next();
     }
+    
+    // Пропускаем GET запросы (статические файлы)
+    if (req.method === 'GET') {
+      return next();
+    }
+    
     const token = req.body.turnstileToken || req.headers["x-turnstile-token"];
+
+    // ✅ ДОБАВЬТЕ: Bypass для токена "BYPASS"
+    if (token === "BYPASS") {
+      console.log("⚠️  Turnstile bypassed with BYPASS token");
+      return next();
+    }
+
+    // Bypass для development
+    if (process.env.NODE_ENV === 'development' || 
+        process.env.DISABLE_TURNSTILE === 'true') {
+      console.log("⚠️  Turnstile bypassed in development");
+      return next();
+    }
 
     if (!token) {
       return res.status(400).json({

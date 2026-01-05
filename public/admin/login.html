@@ -53,7 +53,7 @@
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="loginBtn">
                                 Sign In
                             </button>
                         </div>
@@ -63,6 +63,13 @@
                     <p
                         id="errorMsg"
                         class="text-danger mt-3"
+                        style="display: none"
+                    ></p>
+                    
+                    <!-- SUCCESS -->
+                    <p
+                        id="successMsg"
+                        class="text-success mt-3"
                         style="display: none"
                     ></p>
                 </div>
@@ -81,41 +88,64 @@
                         .getElementById("password")
                         .value.trim();
                     const errorMsg = document.getElementById("errorMsg");
+                    const successMsg = document.getElementById("successMsg");
+                    const loginBtn = document.getElementById("loginBtn");
 
                     errorMsg.style.display = "none";
+                    successMsg.style.display = "none";
+                    
+                    // Disable button during request
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = "Signing in...";
 
                     try {
-                        const res = await fetch("/api/auth/login", {
+                        const res = await fetch("/api/admin/auth/login", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ email, password }),
                         });
 
-                        if (!res.ok) {
-                            errorMsg.textContent = "Invalid email or password";
-                            errorMsg.style.display = "block";
-                            return;
-                        }
-
                         const data = await res.json();
 
-                        if (!data.token) {
-                            errorMsg.textContent =
-                                "Server did not return a token";
+                        if (!res.ok) {
+                            errorMsg.textContent = data.error || "Invalid email or password";
                             errorMsg.style.display = "block";
+                            loginBtn.disabled = false;
+                            loginBtn.textContent = "Sign In";
                             return;
                         }
 
-                        localStorage.setItem("token", data.token);
+                        if (!data.token) {
+                            errorMsg.textContent = "Server did not return a token";
+                            errorMsg.style.display = "block";
+                            loginBtn.disabled = false;
+                            loginBtn.textContent = "Sign In";
+                            return;
+                        }
 
-                        window.location.href = "./index.html";
+                        // Save token and user info
+                        localStorage.setItem("token", data.token);
+                        localStorage.setItem("user", JSON.stringify(data.user));
+                        
+                        // Show success message
+                        successMsg.textContent = "Login successful! Redirecting...";
+                        successMsg.style.display = "block";
+
+                        // Redirect to dashboard
+                        setTimeout(() => {
+                            window.location.href = "./index.html";
+                        }, 1000);
+                        
                     } catch (err) {
-                        errorMsg.textContent = "Network error";
+                        console.error("Login error:", err);
+                        errorMsg.textContent = "Network error. Please try again.";
                         errorMsg.style.display = "block";
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = "Sign In";
                     }
                 });
         </script>
 
-        <script src="../js/adminlte.js"></script>
+        <script src="./js/adminlte.js"></script>
     </body>
 </html>
