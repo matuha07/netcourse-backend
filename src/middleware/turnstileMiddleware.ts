@@ -13,9 +13,12 @@ interface TurnstileResponse {
 export const verifyTurnstile = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
+    if (req.path.startsWith("/admin")) {
+      return next();
+    }
     const token = req.body.turnstileToken || req.headers["x-turnstile-token"];
 
     if (!token) {
@@ -42,11 +45,14 @@ export const verifyTurnstile = async (
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.data.success) {
-      console.error("Turnstile verification failed:", response.data["error-codes"]);
+      console.error(
+        "Turnstile verification failed:",
+        response.data["error-codes"],
+      );
       return res.status(403).json({
         error: "Turnstile verification failed",
         details: response.data["error-codes"],
