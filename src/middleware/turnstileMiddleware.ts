@@ -16,7 +16,7 @@ export const verifyTurnstile = async (
   next: NextFunction,
 ) => {
   try {
-    if (req.path.startsWith("/admin")) {
+    if (req.path.startsWith("/admin") || req.path.startsWith("/api/admin")) {
       return next();
     }
     const token = req.body.turnstileToken || req.headers["x-turnstile-token"];
