@@ -16,6 +16,7 @@ export const verifyTurnstile = async (
   next: NextFunction,
 ) => {
   try {
+    console.log("TURNSTILE", req.method, req.originalUrl);
     if (req.path.startsWith("/admin") || req.path.startsWith("/api/admin")) {
       return next();
     }
