@@ -15,6 +15,7 @@ app.use("/api/admin", (req, _res, next) => {
   next();
 });
 // public
+
 app.use("/api", publicRoutes);
 
 // admin

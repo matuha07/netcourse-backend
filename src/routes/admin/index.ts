@@ -7,8 +7,13 @@ import questionRoutes from "./questions";
 import answerRoutes from "./answers";
 import userRoutes from "./users";
 import progressRoutes from "./progress";
+import authRoutes from "./auth";
+
 
 const router = Router();
+
+// auth
+router.use("/auth", authRoutes);
 
 // courses
 router.use("/courses", courseRoutes);
