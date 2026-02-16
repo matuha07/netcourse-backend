@@ -20,7 +20,7 @@ export const verifyTurnstile = async (
     
     // Пропускаем админские роуты
     if (req.path.startsWith("/admin") || req.path.startsWith("/api/admin")) {
-      console.log("✅ Admin route bypassed");
+      console.log("Admin route bypassed");
       return next();
     }
     
@@ -31,7 +31,6 @@ export const verifyTurnstile = async (
     
     const token = req.body.turnstileToken || req.headers["x-turnstile-token"];
 
-    // ✅ ДОБАВЬТЕ: Bypass для токена "BYPASS"
     if (token === "BYPASS") {
       console.log("⚠️  Turnstile bypassed with BYPASS token");
       return next();

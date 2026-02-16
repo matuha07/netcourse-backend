@@ -17,21 +17,22 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.1",
-    "prisma": "^6.17.1",
+    "@types/pg": "^8.16.0",
+    "drizzle-kit": "^0.31.9",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.0",
     "admin-lte": "^4.0.0-rc4",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "nanoid": "^5.1.6",
+    "pg": "^8.18.0",
     "zod": "^4.1.13"
   },
   "repository": {

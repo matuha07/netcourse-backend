@@ -7,7 +7,7 @@ import { loginSchema } from "../../validators/authSchemas";
 
 const router = Router();
 
-router.post("/register", verifyTurnstile, validate(createUserSchema), register);
-router.post("/login", verifyTurnstile, validate(loginSchema), login);
+router.post("/register", validate(createUserSchema), register);
+router.post("/login", validate(loginSchema), login);
 
 export default router;

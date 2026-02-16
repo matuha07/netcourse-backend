@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import prisma from "../prisma";
+import { db } from "../drizzle/db";
+import { users } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -9,22 +11,23 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, username, avatarUrl } = (req as any).validated.body;
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
+
     if (existingUser) {
       return res.status(400).json({ error: "Email already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        username,
-        avatarUrl,
-        role: "USER",
-      },
-    });
+    const [user] = await db.insert(users).values({
+      email,
+      password: hashedPassword,
+      username,
+      avatarUrl,
+      role: "USER",
+    }).returning();
 
     res.status(201).json({
       message: "User registered successfully",
@@ -44,7 +47,10 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = (req as any).validated.body;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
+
     if (!user) {
       return res.status(401).json({ error: "Invalid email or password" });
     }

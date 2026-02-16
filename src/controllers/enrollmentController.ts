@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import prisma from "../prisma";
+import { db } from "../drizzle/db";
+import { enrollments } from "../drizzle/schema";
+import { eq, and } from "drizzle-orm";
 
 export const createEnrollment = async (req: Request, res: Response) => {
   try {
@@ -14,12 +16,10 @@ export const createEnrollment = async (req: Request, res: Response) => {
         .json({ error: "forbidden: you can only enroll yourself" });
     }
 
-    const enrollment = await prisma.enrollment.create({
-      data: {
-        userId: Number(userId),
-        courseId: Number(courseId),
-      },
-    });
+    const [enrollment] = await db.insert(enrollments).values({
+      userId: Number(userId),
+      courseId: Number(courseId),
+    }).returning();
 
     res.status(201).json(enrollment);
   } catch (error) {
@@ -32,21 +32,21 @@ export const getEnrollments = async (req: Request, res: Response) => {
     const { courseId } = req.params;
     const currentUser = (req as any).user;
 
-    const enrollments =
+    const enrollmentsList =
       currentUser.role === "ADMIN"
-        ? await prisma.enrollment.findMany({
-            where: { courseId: Number(courseId) },
-            include: { user: true },
+        ? await db.query.enrollments.findMany({
+            where: eq(enrollments.courseId, Number(courseId)),
+            with: { user: true },
           })
-        : await prisma.enrollment.findMany({
-            where: {
-              courseId: Number(courseId),
-              userId: currentUser.id,
-            },
-            include: { user: true },
+        : await db.query.enrollments.findMany({
+            where: and(
+              eq(enrollments.courseId, Number(courseId)),
+              eq(enrollments.userId, currentUser.id)
+            ),
+            with: { user: true },
           });
 
-    res.json(enrollments);
+    res.json(enrollmentsList);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch enrollments" });
   }
@@ -57,8 +57,8 @@ export const deleteEnrollment = async (req: Request, res: Response) => {
     const { enrollmentId } = req.params;
     const currentUser = (req as any).user;
 
-    const enrollment = await prisma.enrollment.findUnique({
-      where: { id: Number(enrollmentId) },
+    const enrollment = await db.query.enrollments.findFirst({
+      where: eq(enrollments.id, Number(enrollmentId)),
     });
 
     if (!enrollment) {
@@ -71,9 +71,8 @@ export const deleteEnrollment = async (req: Request, res: Response) => {
         .json({ error: "forbidden: you can only delete your own enrollment" });
     }
 
-    await prisma.enrollment.delete({
-      where: { id: Number(enrollmentId) },
-    });
+    await db.delete(enrollments)
+      .where(eq(enrollments.id, Number(enrollmentId)));
 
     res.status(204).send();
   } catch (error) {

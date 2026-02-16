@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import prisma from "../prisma";
+import { db } from "../drizzle/db";
+import { lessons } from "../drizzle/schema";
+import { eq, asc } from "drizzle-orm";
 
 /**
  * Create a lesson under a section.
@@ -13,23 +15,26 @@ export const createLesson = async (req: Request, res: Response) => {
       req as any
     ).validated.body;
 
-    const lesson = await prisma.lesson.create({
-      data: {
-        sectionId: Number(sectionId),
-        title,
-        contentType,
-        videoUrl,
-        textContent,
-        orderIndex,
-      },
-      include: {
+    const [lesson] = await db.insert(lessons).values({
+      sectionId: Number(sectionId),
+      title,
+      contentType,
+      videoUrl,
+      textContent,
+      orderIndex,
+    }).returning();
+
+    // Fetch the lesson with relations
+    const lessonWithRelations = await db.query.lessons.findFirst({
+      where: eq(lessons.id, lesson.id),
+      with: {
         section: true,
         quizzes: true,
       },
     });
 
     // return created lesson with included relations
-    res.status(201).json(lesson);
+    res.status(201).json(lessonWithRelations);
   } catch (error) {
     console.error("[lessonController] createLesson error:", error);
     res.status(500).json({ error: "Failed to create lesson" });
@@ -39,17 +44,17 @@ export const createLesson = async (req: Request, res: Response) => {
 export const getAllLessons = async (req: Request, res: Response) => {
   try {
     const { sectionId } = req.params;
-    const lessons = await prisma.lesson.findMany({
-      where: { sectionId: Number(sectionId) },
-      include: {
+    
+    const lessonsList = await db.query.lessons.findMany({
+      where: eq(lessons.sectionId, Number(sectionId)),
+      with: {
         section: true,
         quizzes: true,
       },
-      orderBy: {
-        orderIndex: "asc",
-      },
+      orderBy: asc(lessons.orderIndex),
     });
-    res.json(lessons);
+
+    res.json(lessonsList);
   } catch (error) {
     console.error("[lessonController] getAllLessons error:", error);
     res.status(500).json({ error: "Failed to fetch lessons" });
@@ -59,9 +64,10 @@ export const getAllLessons = async (req: Request, res: Response) => {
 export const getLessonById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const lesson = await prisma.lesson.findUnique({
-      where: { id: Number(id) },
-      include: {
+    
+    const lesson = await db.query.lessons.findFirst({
+      where: eq(lessons.id, Number(id)),
+      with: {
         section: true,
         quizzes: true,
       },
@@ -86,16 +92,21 @@ export const updateLesson = async (req: Request, res: Response) => {
       req as any
     ).validated.body;
 
-    const updated = await prisma.lesson.update({
-      where: { id: Number(id) },
-      data: { title, contentType, videoUrl, textContent, orderIndex },
-      include: {
+    const [updated] = await db.update(lessons)
+      .set({ title, contentType, videoUrl, textContent, orderIndex })
+      .where(eq(lessons.id, Number(id)))
+      .returning();
+
+    // Fetch with relations
+    const updatedWithRelations = await db.query.lessons.findFirst({
+      where: eq(lessons.id, updated.id),
+      with: {
         section: true,
         quizzes: true,
       },
     });
 
-    res.json(updated);
+    res.json(updatedWithRelations);
   } catch (error) {
     console.error("[lessonController] updateLesson error:", error);
     res.status(500).json({ error: "Failed to update lesson" });
@@ -105,9 +116,10 @@ export const updateLesson = async (req: Request, res: Response) => {
 export const deleteLesson = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.lesson.delete({
-      where: { id: Number(id) },
-    });
+    
+    await db.delete(lessons)
+      .where(eq(lessons.id, Number(id)));
+
     res.status(204).send();
   } catch (error) {
     console.error("[lessonController] deleteLesson error:", error);

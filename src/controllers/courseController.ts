@@ -1,12 +1,18 @@
 import { Request, Response } from "express";
-import prisma from "../prisma";
+import { db } from "../drizzle/db";
+import { courses } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 export const createCourse = async (req: Request, res: Response) => {
   try {
     const { title, description, category } = (req as any).validated.body;
-    const course = await prisma.course.create({
-      data: { title, description, category },
-    });
+    
+    const [course] = await db.insert(courses).values({
+      title,
+      description,
+      category,
+    }).returning();
+
     res.status(201).json(course);
   } catch (error) {
     console.error(error);
@@ -16,13 +22,14 @@ export const createCourse = async (req: Request, res: Response) => {
 
 export const getAllCourses = async (req: Request, res: Response) => {
   try {
-    const courses = await prisma.course.findMany({
-      include: {
+    const coursesList = await db.query.courses.findMany({
+      with: {
         enrollments: true,
         sections: true,
       },
     });
-    res.json(courses);
+
+    res.json(coursesList);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch courses" });
@@ -32,9 +39,10 @@ export const getAllCourses = async (req: Request, res: Response) => {
 export const getCourseById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const course = await prisma.course.findUnique({
-      where: { id: Number(id) },
-      include: {
+    
+    const course = await db.query.courses.findFirst({
+      where: eq(courses.id, Number(id)),
+      with: {
         enrollments: true,
         sections: true,
       },
@@ -56,10 +64,10 @@ export const updateCourse = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { title, description, category } = (req as any).validated.body;
 
-    const updated = await prisma.course.update({
-      where: { id: Number(id) },
-      data: { title, description, category },
-    });
+    const [updated] = await db.update(courses)
+      .set({ title, description, category })
+      .where(eq(courses.id, Number(id)))
+      .returning();
 
     res.json(updated);
   } catch (error) {
@@ -71,9 +79,10 @@ export const updateCourse = async (req: Request, res: Response) => {
 export const deleteCourse = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.course.delete({
-      where: { id: Number(id) },
-    });
+    
+    await db.delete(courses)
+      .where(eq(courses.id, Number(id)));
+
     res.status(204).send();
   } catch (error) {
     console.error(error);

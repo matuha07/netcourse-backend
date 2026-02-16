@@ -1,13 +1,19 @@
 import { Request, Response } from "express";
-import prisma from "../prisma";
+import { db } from "../drizzle/db";
+import { answers } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 export const createAnswer = async (req: Request, res: Response) => {
   try {
     const { questionId } = req.params;
     const { answerText, isCorrect } = (req as any).validated.body;
-    const answer = await prisma.answer.create({
-      data: { questionId: Number(questionId), answerText, isCorrect },
-    });
+    
+    const [answer] = await db.insert(answers).values({
+      questionId: Number(questionId),
+      answerText,
+      isCorrect,
+    }).returning();
+
     res.status(201).json(answer);
   } catch {
     res.status(500).json({ error: "Failed to create answer" });
@@ -16,10 +22,11 @@ export const createAnswer = async (req: Request, res: Response) => {
 
 export const getAllAnswers = async (req: Request, res: Response) => {
   try {
-    const answers = await prisma.answer.findMany({
-      include: { question: true },
+    const answersList = await db.query.answers.findMany({
+      with: { question: true },
     });
-    res.json(answers);
+
+    res.json(answersList);
   } catch {
     res.status(500).json({ error: "Failed to fetch answers" });
   }
@@ -28,11 +35,14 @@ export const getAllAnswers = async (req: Request, res: Response) => {
 export const getAnswerById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const answer = await prisma.answer.findUnique({
-      where: { id: Number(id) },
-      include: { question: true },
+    
+    const answer = await db.query.answers.findFirst({
+      where: eq(answers.id, Number(id)),
+      with: { question: true },
     });
+
     if (!answer) return res.status(404).json({ error: "Answer not found" });
+    
     res.json(answer);
   } catch {
     res.status(500).json({ error: "Failed to fetch answer" });
@@ -43,10 +53,12 @@ export const updateAnswer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { answerText, isCorrect } = (req as any).validated.body;
-    const updated = await prisma.answer.update({
-      where: { id: Number(id) },
-      data: { answerText, isCorrect },
-    });
+    
+    const [updated] = await db.update(answers)
+      .set({ answerText, isCorrect })
+      .where(eq(answers.id, Number(id)))
+      .returning();
+
     res.json(updated);
   } catch {
     res.status(500).json({ error: "Failed to update answer" });
@@ -56,7 +68,10 @@ export const updateAnswer = async (req: Request, res: Response) => {
 export const deleteAnswer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.answer.delete({ where: { id: Number(id) } });
+    
+    await db.delete(answers)
+      .where(eq(answers.id, Number(id)));
+
     res.status(204).send();
   } catch {
     res.status(500).json({ error: "Failed to delete answer" });

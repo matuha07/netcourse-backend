@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import prisma from "../prisma";
+import { db } from "../drizzle/db";
+import { sections, courses } from "../drizzle/schema";
+import { eq, and, asc } from "drizzle-orm";
 
 /**
  * Create a section scoped to a specific course (courseId from route params).
@@ -13,17 +15,19 @@ export const createSection = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Missing courseId parameter" });
     }
 
-    const course = await prisma.course.findUnique({
-      where: { id: Number(courseId) },
+    const course = await db.query.courses.findFirst({
+      where: eq(courses.id, Number(courseId)),
     });
 
     if (!course) {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    const section = await prisma.section.create({
-      data: { courseId: Number(courseId), title, orderIndex },
-    });
+    const [section] = await db.insert(sections).values({
+      courseId: Number(courseId),
+      title,
+      orderIndex,
+    }).returning();
 
     res.status(201).json(section);
   } catch (error) {
@@ -47,18 +51,16 @@ export const getAllSections = async (req: Request, res: Response) => {
       `[sectionController] getAllSections received courseId=${courseId}`,
     );
 
-    const sections = await prisma.section.findMany({
-      where: { courseId: Number(courseId) },
-      include: {
+    const sectionsList = await db.query.sections.findMany({
+      where: eq(sections.courseId, Number(courseId)),
+      with: {
         lessons: true,
       },
-      orderBy: {
-        orderIndex: "asc",
-      },
+      orderBy: asc(sections.orderIndex),
     });
 
     console.debug(
-      `[sectionController] getAllSections returning ${Array.isArray(sections) ? sections.length : 0} sections for courseId=${courseId}`,
+      `[sectionController] getAllSections returning ${Array.isArray(sectionsList) ? sectionsList.length : 0} sections for courseId=${courseId}`,
     );
 
     // Debug headers: indicate that this response corresponds to requested courseId and how many sections returned
@@ -66,13 +68,13 @@ export const getAllSections = async (req: Request, res: Response) => {
       res.setHeader("X-Debug-CourseId", String(courseId));
       res.setHeader(
         "X-Debug-Sections-Count",
-        String(Array.isArray(sections) ? sections.length : 0),
+        String(Array.isArray(sectionsList) ? sectionsList.length : 0),
       );
     } catch (err) {
       console.debug("[sectionController] failed to set debug headers", err);
     }
 
-    res.json(sections);
+    res.json(sectionsList);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch sections" });
@@ -94,9 +96,9 @@ export const getSectionById = async (req: Request, res: Response) => {
       `[sectionController] getSectionById called courseId=${courseId} sectionId=${sectionId}`,
     );
 
-    const section = await prisma.section.findUnique({
-      where: { id: Number(sectionId) },
-      include: {
+    const section = await db.query.sections.findFirst({
+      where: eq(sections.id, Number(sectionId)),
+      with: {
         lessons: true,
         course: true,
       },
@@ -142,8 +144,8 @@ export const updateSection = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Missing route parameters" });
     }
 
-    const section = await prisma.section.findUnique({
-      where: { id: Number(sectionId) },
+    const section = await db.query.sections.findFirst({
+      where: eq(sections.id, Number(sectionId)),
     });
 
     if (!section || section.courseId !== Number(courseId)) {
@@ -152,10 +154,10 @@ export const updateSection = async (req: Request, res: Response) => {
         .json({ error: "Section not found for this course" });
     }
 
-    const updated = await prisma.section.update({
-      where: { id: Number(sectionId) },
-      data: { title, orderIndex },
-    });
+    const [updated] = await db.update(sections)
+      .set({ title, orderIndex })
+      .where(eq(sections.id, Number(sectionId)))
+      .returning();
 
     res.json(updated);
   } catch (error) {
@@ -175,8 +177,8 @@ export const deleteSection = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Missing route parameters" });
     }
 
-    const section = await prisma.section.findUnique({
-      where: { id: Number(sectionId) },
+    const section = await db.query.sections.findFirst({
+      where: eq(sections.id, Number(sectionId)),
     });
 
     if (!section || section.courseId !== Number(courseId)) {
@@ -185,9 +187,8 @@ export const deleteSection = async (req: Request, res: Response) => {
         .json({ error: "Section not found for this course" });
     }
 
-    await prisma.section.delete({
-      where: { id: Number(sectionId) },
-    });
+    await db.delete(sections)
+      .where(eq(sections.id, Number(sectionId)));
 
     res.status(204).send();
   } catch (error) {

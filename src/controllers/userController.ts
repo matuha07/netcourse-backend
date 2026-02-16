@@ -1,23 +1,26 @@
 import { Request, Response } from "express";
-import prisma from "../prisma";
+import { db } from "../drizzle/db";
+import { users } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
     const { email, password, username, avatarUrl } = (req as any).validated
       .body;
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password,
-        username,
-        avatarUrl,
-      },
-    });
+    
+    const [user] = await db.insert(users).values({
+      email,
+      password,
+      username,
+      avatarUrl,
+    }).returning();
+
     res.status(201).json(user);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating user:", error);
 
-    if (error.code === "P2002") {
+    // Drizzle throws different errors - check for unique constraint violation
+    if (error?.code === '23505' || error?.message?.includes('unique')) {
       return res
         .status(409)
         .json({ error: "User with this email already exists" });
@@ -29,13 +32,14 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const users = await prisma.user.findMany({
-      include: {
+    const usersList = await db.query.users.findMany({
+      with: {
         enrollments: true,
-        progress: true,
+        progresses: true,
       },
     });
-    res.json(users);
+
+    res.json(usersList);
   } catch (error) {
     res.status(500).json({ error: "failed to fetch users" });
   }
@@ -56,15 +60,16 @@ export const updateUser = async (req: Request, res: Response) => {
         .json({ error: "forbidden: you can only update your own account" });
     }
 
-    const user = await prisma.user.update({
-      where: { id: targetUserId },
-      data: {
+    const [user] = await db.update(users)
+      .set({
         email,
         password,
         username,
         avatarUrl,
-      },
-    });
+      })
+      .where(eq(users.id, targetUserId))
+      .returning();
+
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: "failed to update user" });
@@ -84,9 +89,9 @@ export const deleteUser = async (req: Request, res: Response) => {
         .json({ error: "forbidden: you can only delete your own account" });
     }
 
-    await prisma.user.delete({
-      where: { id: targetUserId },
-    });
+    await db.delete(users)
+      .where(eq(users.id, targetUserId));
+
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: "failed to delete user" });
@@ -106,11 +111,11 @@ export const getUserById = async (req: Request, res: Response) => {
         .json({ error: "forbidden: you can only view your own account" });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: targetUserId },
-      include: {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, targetUserId),
+      with: {
         enrollments: true,
-        progress: true,
+        progresses: true,
       },
     });
 
