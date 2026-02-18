@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, username, avatarUrl } = (req as any).validated
+    const { email, password, username, avatarUrl, bio } = (req as any).validated
       .body;
 
     // Hash password before storing
@@ -19,6 +19,7 @@ export const createUser = async (req: Request, res: Response) => {
         password: hashedPassword,
         username,
         avatarUrl,
+        bio,
       })
       .returning();
 
@@ -53,7 +54,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, username, avatarUrl } = (req as any).validated
+    const { email, password, username, avatarUrl, bio } = (req as any).validated
       .body;
     const { id } = req.params;
     const currentUser = (req as any).user;
@@ -71,6 +72,7 @@ export const updateUser = async (req: Request, res: Response) => {
     if (email !== undefined) updateData.email = email;
     if (username !== undefined) updateData.username = username;
     if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+    if (bio !== undefined) updateData.bio = bio;
 
     // Hash password if provided
     if (password !== undefined) {

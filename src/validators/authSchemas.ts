@@ -4,6 +4,9 @@ export const registerSchema = z.object({
   body: z.object({
     email: z.email(),
     password: z.string().min(6),
+    username: z.string().optional(),
+    avatarUrl: z.string().optional(),
+    bio: z.string().max(500).optional(),
   }),
 });
 

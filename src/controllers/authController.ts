@@ -9,7 +9,8 @@ const SECRET = process.env.JWT_SECRET || "secret_key";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, username, avatarUrl } = (req as any).validated.body;
+    const { email, password, username, avatarUrl, bio } = (req as any).validated
+      .body;
 
     const existingUser = await db.query.users.findFirst({
       where: eq(users.email, email),
@@ -21,13 +22,17 @@ export const register = async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const [user] = await db.insert(users).values({
-      email,
-      password: hashedPassword,
-      username,
-      avatarUrl,
-      role: "USER",
-    }).returning();
+    const [user] = await db
+      .insert(users)
+      .values({
+        email,
+        password: hashedPassword,
+        username,
+        avatarUrl,
+        bio,
+        role: "USER",
+      })
+      .returning();
 
     res.status(201).json({
       message: "User registered successfully",
@@ -35,6 +40,7 @@ export const register = async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         username: user.username,
+        bio: user.bio,
         role: user.role,
       },
     });
@@ -63,7 +69,7 @@ export const login = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     res.json({
