@@ -6,7 +6,7 @@ const SECRET = process.env.JWT_SECRET || "secret_key";
 export const authenticate = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const header = req.headers.authorization;
 
@@ -25,7 +25,7 @@ export const authenticate = (
     (req as any).user = decoded;
     next();
   } catch {
-    res.status(401).json({ error: "Invalid token" });
+    return res.status(401).json({ error: "Invalid token" });
   }
 };
 

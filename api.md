@@ -330,6 +330,21 @@
 - `"in_progress"`
 - `"completed"`
 
+**Примечание:** При установке статуса `"completed"`:
+- Автоматически создается сертификат с уникальным кодом
+- Автоматически присваивается значок (badge), если он привязан к этому курсу
+
+**Response:**
+```json
+{
+  "id": 1,
+  "userId": 1,
+  "courseId": 1,
+  "status": "completed",
+  "updatedAt": "2026-02-18T12:00:00.000Z"
+}
+```
+
 ---
 
 ## Викторины (Quizzes)
@@ -479,34 +494,212 @@
 
 ---
 
-## Сокращение ссылок (Shortener)
+## Значки (Badges)
 
-Маршруты: `/shorten`.
+Маршруты: `/badges`.
 
-### POST /shorten
+### GET /badges
 
-Создать короткую ссылку.
+Получить список всех значков.
+
+**Требуется аутентификация:** Нет
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "JavaScript Master",
+    "description": "Завершил курс по JavaScript",
+    "imageUrl": "https://example.com/badge.png",
+    "courseId": 1,
+    "course": {
+      "id": 1,
+      "title": "JavaScript для начинающих",
+      "description": "Основы JavaScript",
+      "category": "Programming"
+    },
+    "userBadges": []
+  }
+]
+```
+
+### GET /badges/me
+
+Получить все значки текущего пользователя.
+
+**Требуется аутентификация:** Да
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "badgeId": 1,
+    "awardedAt": "2026-02-15T10:30:00.000Z",
+    "badge": {
+      "id": 1,
+      "name": "JavaScript Master",
+      "description": "Завершил курс по JavaScript",
+      "imageUrl": "https://example.com/badge.png",
+      "courseId": 1
+    }
+  }
+]
+```
+
+---
+
+## Сертификаты (Certifications)
+
+Маршруты: `/certifications`.
+
+### GET /certifications/me
+
+Получить все сертификаты текущего пользователя.
+
+**Требуется аутентификация:** Да
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "courseId": 1,
+    "certificateCode": "a1b2c3d4e5f6",
+    "issuedAt": "2026-02-15T10:30:00.000Z",
+    "course": {
+      "id": 1,
+      "title": "JavaScript для начинающих",
+      "description": "Основы JavaScript",
+      "category": "Programming"
+    }
+  }
+]
+```
+
+### GET /certifications/verify/:code
+
+Проверить подлинность сертификата по коду.
+
+**Требуется аутентификация:** Нет
+
+**Параметры:**
+- `code` (string) - Код сертификата
+
+**Response (успешная проверка):**
+```json
+{
+  "valid": true,
+  "certificateCode": "a1b2c3d4e5f6",
+  "issuedAt": "2026-02-15T10:30:00.000Z",
+  "user": {
+    "username": "JohnDoe",
+    "avatarUrl": "https://example.com/avatar.png"
+  },
+  "course": {
+    "title": "JavaScript для начинающих",
+    "category": "Programming"
+  }
+}
+```
+
+**Response (сертификат не найден):**
+```json
+{
+  "error": "Certificate not found"
+}
+```
+
+---
+
+## Социальные ссылки (Social Links)
+
+Маршруты: `/social-links`.
+
+**Все маршруты требуют аутентификацию.**
+
+### GET /social-links
+
+Получить все социальные ссылки текущего пользователя.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "platform": "github",
+    "url": "https://github.com/username"
+  },
+  {
+    "id": 2,
+    "userId": 1,
+    "platform": "twitter",
+    "url": "https://twitter.com/username"
+  }
+]
+```
+
+### POST /social-links
+
+Создать новую социальную ссылку.
 
 **Request Body:**
 ```json
 {
-  "url": "https://example.com"
+  "platform": "github",
+  "url": "https://github.com/username"
 }
 ```
+
+**Поля:**
+- `platform` (enum) - Платформа: `"github"`, `"twitter"`, `"youtube"`, `"website"`, `"other"`
+- `url` (string) - URL адрес (должен быть валидным URL)
 
 **Response:**
 ```json
 {
-  "short_url": "http://localhost/abc123",
-  "original_url": "https://example.com"
+  "id": 1,
+  "userId": 1,
+  "platform": "github",
+  "url": "https://github.com/username"
 }
 ```
 
-### GET /shorten/:short
+### PUT /social-links/:id
 
-Перенаправление по короткой ссылке.
+Обновить социальную ссылку.
 
-**Response:** HTTP 302 Redirect
+**Request Body:**
+```json
+{
+  "platform": "twitter",
+  "url": "https://twitter.com/newusername"
+}
+```
+
+**Поля (все опциональны):**
+- `platform` (enum) - Платформа: `"github"`, `"twitter"`, `"youtube"`, `"website"`, `"other"`
+- `url` (string) - URL адрес
+
+**Response:**
+```json
+{
+  "id": 1,
+  "userId": 1,
+  "platform": "twitter",
+  "url": "https://twitter.com/newusername"
+}
+```
+
+### DELETE /social-links/:id
+
+Удалить социальную ссылку.
+
+**Response:** 204 No Content
 
 ---
 
@@ -886,6 +1079,10 @@
 - `"in_progress"`
 - `"completed"`
 
+**Примечание:** При установке статуса `"completed"`:
+- Автоматически создается сертификат с уникальным кодом
+- Автоматически присваивается значок (badge), если он привязан к этому курсу
+
 ---
 
 ## Викторины (Quizzes)
@@ -1119,6 +1316,155 @@
 ### DELETE /admin/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions/:questionId/answers/:answerId
 
 Удалить ответ.
+
+---
+
+## Значки (Badges)
+
+Маршруты: `/admin/badges`.
+
+**Все маршруты требуют аутентификацию и роль ADMIN.**
+
+### GET /admin/badges
+
+Получить список всех значков.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "JavaScript Master",
+    "description": "Завершил курс по JavaScript",
+    "imageUrl": "https://example.com/badge.png",
+    "courseId": 1,
+    "course": {
+      "id": 1,
+      "title": "JavaScript для начинающих",
+      "description": "Основы JavaScript",
+      "category": "Programming"
+    }
+  }
+]
+```
+
+### POST /admin/badges
+
+Создать новый значок.
+
+**Request Body:**
+```json
+{
+  "name": "JavaScript Master",
+  "description": "Завершил курс по JavaScript",
+  "imageUrl": "https://example.com/badge.png",
+  "courseId": 1
+}
+```
+
+**Поля:**
+- `name` (string, обязательное) - Название значка
+- `description` (string, опциональное) - Описание значка
+- `imageUrl` (string URL, опциональное) - URL изображения значка
+- `courseId` (number, опциональное) - ID курса, с которым связан значок
+
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "JavaScript Master",
+  "description": "Завершил курс по JavaScript",
+  "imageUrl": "https://example.com/badge.png",
+  "courseId": 1
+}
+```
+
+### PUT /admin/badges/:id
+
+Обновить значок.
+
+**Request Body (все поля опциональны):**
+```json
+{
+  "name": "Advanced JavaScript Master",
+  "description": "Завершил продвинутый курс по JavaScript",
+  "imageUrl": "https://example.com/new-badge.png",
+  "courseId": 2
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "Advanced JavaScript Master",
+  "description": "Завершил продвинутый курс по JavaScript",
+  "imageUrl": "https://example.com/new-badge.png",
+  "courseId": 2
+}
+```
+
+### DELETE /admin/badges/:id
+
+Удалить значок.
+
+**Response:** 204 No Content
+
+### GET /admin/badges/users/:userId
+
+Получить все значки конкретного пользователя.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "badgeId": 1,
+    "awardedAt": "2026-02-15T10:30:00.000Z",
+    "badge": {
+      "id": 1,
+      "name": "JavaScript Master",
+      "description": "Завершил курс по JavaScript",
+      "imageUrl": "https://example.com/badge.png",
+      "courseId": 1
+    }
+  }
+]
+```
+
+---
+
+## Сертификаты (Certifications)
+
+Маршруты: `/admin/certifications`.
+
+**Все маршруты требуют аутентификацию и роль ADMIN.**
+
+### GET /admin/certifications/users/:userId
+
+Получить все сертификаты конкретного пользователя.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "courseId": 1,
+    "certificateCode": "a1b2c3d4e5f6",
+    "issuedAt": "2026-02-15T10:30:00.000Z",
+    "course": {
+      "id": 1,
+      "title": "JavaScript для начинающих",
+      "description": "Основы JavaScript",
+      "category": "Programming"
+    }
+  }
+]
+```
+
+**Примечание:** Сертификаты создаются автоматически при завершении курса (установке статуса прогресса в `"completed"`).
 
 ---
 

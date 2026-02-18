@@ -3,28 +3,25 @@ import { db } from "../drizzle/db";
 import { lessons } from "../drizzle/schema";
 import { eq, asc } from "drizzle-orm";
 
-/**
- * Create a lesson under a section.
- * Returns the created lesson including relations (section and quizzes) for consistency.
- */
 export const createLesson = async (req: Request, res: Response) => {
   try {
     const { sectionId } = req.params;
-    // validated created by middleware: { body, params, query }
     const { title, contentType, videoUrl, textContent, orderIndex } = (
       req as any
     ).validated.body;
 
-    const [lesson] = await db.insert(lessons).values({
-      sectionId: Number(sectionId),
-      title,
-      contentType,
-      videoUrl,
-      textContent,
-      orderIndex,
-    }).returning();
+    const [lesson] = await db
+      .insert(lessons)
+      .values({
+        sectionId: Number(sectionId),
+        title,
+        contentType,
+        videoUrl,
+        textContent,
+        orderIndex,
+      })
+      .returning();
 
-    // Fetch the lesson with relations
     const lessonWithRelations = await db.query.lessons.findFirst({
       where: eq(lessons.id, lesson.id),
       with: {
@@ -33,7 +30,6 @@ export const createLesson = async (req: Request, res: Response) => {
       },
     });
 
-    // return created lesson with included relations
     res.status(201).json(lessonWithRelations);
   } catch (error) {
     console.error("[lessonController] createLesson error:", error);
@@ -44,7 +40,7 @@ export const createLesson = async (req: Request, res: Response) => {
 export const getAllLessons = async (req: Request, res: Response) => {
   try {
     const { sectionId } = req.params;
-    
+
     const lessonsList = await db.query.lessons.findMany({
       where: eq(lessons.sectionId, Number(sectionId)),
       with: {
@@ -64,7 +60,7 @@ export const getAllLessons = async (req: Request, res: Response) => {
 export const getLessonById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
+
     const lesson = await db.query.lessons.findFirst({
       where: eq(lessons.id, Number(id)),
       with: {
@@ -86,18 +82,21 @@ export const getLessonById = async (req: Request, res: Response) => {
 
 export const updateLesson = async (req: Request, res: Response) => {
   try {
-    // routes use :id for lesson identifier
     const { id } = req.params;
     const { title, contentType, videoUrl, textContent, orderIndex } = (
       req as any
     ).validated.body;
 
-    const [updated] = await db.update(lessons)
+    const [updated] = await db
+      .update(lessons)
       .set({ title, contentType, videoUrl, textContent, orderIndex })
       .where(eq(lessons.id, Number(id)))
       .returning();
 
-    // Fetch with relations
+    if (!updated) {
+      return res.status(404).json({ error: "Lesson not found" });
+    }
+
     const updatedWithRelations = await db.query.lessons.findFirst({
       where: eq(lessons.id, updated.id),
       with: {
@@ -116,9 +115,8 @@ export const updateLesson = async (req: Request, res: Response) => {
 export const deleteLesson = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
-    await db.delete(lessons)
-      .where(eq(lessons.id, Number(id)));
+
+    await db.delete(lessons).where(eq(lessons.id, Number(id)));
 
     res.status(204).send();
   } catch (error) {

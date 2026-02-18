@@ -1,5 +1,9 @@
 import { relations } from "drizzle-orm/relations";
-import { sections, lessons, quizzes, questions, answers, courses, enrollments, users, progress } from "./schema";
+import {
+	sections, lessons, quizzes, questions, answers,
+	courses, enrollments, users, progress,
+	userSocialLinks, badges, userBadges, certifications
+} from "./schema";
 
 export const lessonsRelations = relations(lessons, ({one, many}) => ({
 	section: one(sections, {
@@ -55,11 +59,16 @@ export const coursesRelations = relations(courses, ({many}) => ({
 	enrollments: many(enrollments),
 	progresses: many(progress),
 	sections: many(sections),
+	badges: many(badges),
+	certifications: many(certifications),
 }));
 
 export const usersRelations = relations(users, ({many}) => ({
 	enrollments: many(enrollments),
 	progresses: many(progress),
+	socialLinks: many(userSocialLinks),
+	badges: many(userBadges),
+	certifications: many(certifications),
 }));
 
 export const progressRelations = relations(progress, ({one}) => ({
@@ -70,5 +79,42 @@ export const progressRelations = relations(progress, ({one}) => ({
 	user: one(users, {
 		fields: [progress.userId],
 		references: [users.id]
+	}),
+}));
+
+export const userSocialLinksRelations = relations(userSocialLinks, ({one}) => ({
+	user: one(users, {
+		fields: [userSocialLinks.userId],
+		references: [users.id]
+	}),
+}));
+
+export const badgesRelations = relations(badges, ({one, many}) => ({
+	course: one(courses, {
+		fields: [badges.courseId],
+		references: [courses.id]
+	}),
+	userBadges: many(userBadges),
+}));
+
+export const userBadgesRelations = relations(userBadges, ({one}) => ({
+	user: one(users, {
+		fields: [userBadges.userId],
+		references: [users.id]
+	}),
+	badge: one(badges, {
+		fields: [userBadges.badgeId],
+		references: [badges.id]
+	}),
+}));
+
+export const certificationsRelations = relations(certifications, ({one}) => ({
+	user: one(users, {
+		fields: [certifications.userId],
+		references: [users.id]
+	}),
+	course: one(courses, {
+		fields: [certifications.courseId],
+		references: [courses.id]
 	}),
 }));

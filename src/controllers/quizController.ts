@@ -7,11 +7,14 @@ export const createQuiz = async (req: Request, res: Response) => {
   try {
     const { lessonId } = req.params;
     const { title } = (req as any).validated.body;
-    
-    const [quiz] = await db.insert(quizzes).values({
-      lessonId: Number(lessonId),
-      title,
-    }).returning();
+
+    const [quiz] = await db
+      .insert(quizzes)
+      .values({
+        lessonId: Number(lessonId),
+        title,
+      })
+      .returning();
 
     res.status(201).json(quiz);
   } catch (error) {
@@ -21,8 +24,8 @@ export const createQuiz = async (req: Request, res: Response) => {
 
 export const getAllQuizzes = async (req: Request, res: Response) => {
   try {
-    const { courseId, sectionId, lessonId } = req.params; 
-    
+    const { courseId, sectionId, lessonId } = req.params;
+
     const quizzesList = await db.query.quizzes.findMany({
       where: eq(quizzes.lessonId, Number(lessonId)),
       with: {
@@ -40,7 +43,7 @@ export const getAllQuizzes = async (req: Request, res: Response) => {
 export const getQuizById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
+
     const quiz = await db.query.quizzes.findFirst({
       where: eq(quizzes.id, Number(id)),
       with: {
@@ -52,7 +55,7 @@ export const getQuizById = async (req: Request, res: Response) => {
     });
 
     if (!quiz) return res.status(404).json({ error: "Quiz not found" });
-    
+
     res.json(quiz);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch quiz" });
@@ -63,11 +66,16 @@ export const updateQuiz = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { title } = (req as any).validated.body;
-    
-    const [updated] = await db.update(quizzes)
+
+    const [updated] = await db
+      .update(quizzes)
       .set({ title })
       .where(eq(quizzes.id, Number(id)))
       .returning();
+
+    if (!updated) {
+      return res.status(404).json({ error: "Quiz not found" });
+    }
 
     res.json(updated);
   } catch (error) {
@@ -78,9 +86,8 @@ export const updateQuiz = async (req: Request, res: Response) => {
 export const deleteQuiz = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
-    await db.delete(quizzes)
-      .where(eq(quizzes.id, Number(id)));
+
+    await db.delete(quizzes).where(eq(quizzes.id, Number(id)));
 
     res.status(204).send();
   } catch (error) {

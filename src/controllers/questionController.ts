@@ -8,12 +8,15 @@ export const createQuestion = async (req: Request, res: Response) => {
     const { quizId } = req.params;
 
     const { questionText, questionType } = (req as any).validated.body;
-    
-    const [question] = await db.insert(questions).values({
-      quizId: Number(quizId),
-      questionText,
-      questionType,
-    }).returning();
+
+    const [question] = await db
+      .insert(questions)
+      .values({
+        quizId: Number(quizId),
+        questionText,
+        questionType,
+      })
+      .returning();
 
     res.status(201).json(question);
   } catch {
@@ -24,12 +27,12 @@ export const createQuestion = async (req: Request, res: Response) => {
 export const getAllQuestions = async (req: Request, res: Response) => {
   try {
     const { courseId, sectionId, lessonId, quizId } = req.params;
-    
+
     const questionsList = await db.query.questions.findMany({
       where: eq(questions.quizId, Number(quizId)),
-      with: { 
-        answers: true 
-      }
+      with: {
+        answers: true,
+      },
     });
 
     res.json(questionsList);
@@ -41,17 +44,17 @@ export const getAllQuestions = async (req: Request, res: Response) => {
 export const getQuestionById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
+
     const question = await db.query.questions.findFirst({
       where: eq(questions.id, Number(id)),
-      with: { 
-        answers: true, 
-        quiz: true 
+      with: {
+        answers: true,
+        quiz: true,
       },
     });
 
     if (!question) return res.status(404).json({ error: "Question not found" });
-    
+
     res.json(question);
   } catch {
     res.status(500).json({ error: "Failed to fetch question" });
@@ -62,11 +65,16 @@ export const updateQuestion = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { questionText, questionType } = (req as any).validated.body;
-    
-    const [updated] = await db.update(questions)
+
+    const [updated] = await db
+      .update(questions)
       .set({ questionText, questionType })
       .where(eq(questions.id, Number(id)))
       .returning();
+
+    if (!updated) {
+      return res.status(404).json({ error: "Question not found" });
+    }
 
     res.json(updated);
   } catch {
@@ -77,9 +85,8 @@ export const updateQuestion = async (req: Request, res: Response) => {
 export const deleteQuestion = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
-    await db.delete(questions)
-      .where(eq(questions.id, Number(id)));
+
+    await db.delete(questions).where(eq(questions.id, Number(id)));
 
     res.status(204).send();
   } catch {

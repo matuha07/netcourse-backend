@@ -6,6 +6,9 @@ export const ContentType = pgEnum("ContentType", ['video', 'text', 'quiz'])
 export const ProgressStatus = pgEnum("ProgressStatus", ['not_started', 'in_progress', 'completed'])
 export const QuestionType = pgEnum("QuestionType", ['single', 'multiple', 'text'])
 export const Role = pgEnum("Role", ['ADMIN', 'USER', 'STUDENT'])
+export const SocialPlatform = pgEnum("SocialPlatform", [
+	'github', 'twitter', 'youtube', 'website', 'other'
+])
 
 // Users table
 export const users = pgTable("users", {
@@ -138,5 +141,74 @@ export const progress = pgTable("progress", {
 			columns: [table.userId],
 			foreignColumns: [users.id],
 			name: "Progress_user_id_fkey"
+		}).onUpdate("cascade").onDelete("cascade"),
+])
+
+// Social Links table
+export const userSocialLinks = pgTable("user_social_links", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id").notNull(),
+	platform: SocialPlatform("platform").notNull(),
+	url: text().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "UserSocialLinks_user_id_fkey"
+		}).onUpdate("cascade").onDelete("cascade"),
+])
+
+// Badges table
+export const badges = pgTable("badges", {
+	id: serial().primaryKey().notNull(),
+	name: text().notNull(),
+	description: text(),
+	imageUrl: text("image_url"),
+	courseId: integer("course_id"),
+}, (table) => [
+	foreignKey({
+			columns: [table.courseId],
+			foreignColumns: [courses.id],
+			name: "Badge_course_id_fkey"
+		}).onUpdate("cascade").onDelete("set null"),
+])
+
+export const userBadges = pgTable("user_badges", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id").notNull(),
+	badgeId: integer("badge_id").notNull(),
+	awardedAt: timestamp("awarded_at", { precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	uniqueIndex("user_badges_user_id_badge_id_key").using("btree", table.userId.asc().nullsLast().op("int4_ops"), table.badgeId.asc().nullsLast().op("int4_ops")),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "UserBadge_user_id_fkey"
+		}).onUpdate("cascade").onDelete("cascade"),
+	foreignKey({
+			columns: [table.badgeId],
+			foreignColumns: [badges.id],
+			name: "UserBadge_badge_id_fkey"
+		}).onUpdate("cascade").onDelete("cascade"),
+])
+
+export const certifications = pgTable("certifications", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id").notNull(),
+	courseId: integer("course_id").notNull(),
+	issuedAt: timestamp("issued_at", { precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	certificateCode: text("certificate_code").notNull(),
+}, (table) => [
+	uniqueIndex("certifications_user_id_course_id_key").using("btree", table.userId.asc().nullsLast().op("int4_ops"), table.courseId.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("certifications_certificate_code_key").using("btree", table.certificateCode.asc().nullsLast().op("text_ops")),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "Certification_user_id_fkey"
+		}).onUpdate("cascade").onDelete("cascade"),
+	foreignKey({
+			columns: [table.courseId],
+			foreignColumns: [courses.id],
+			name: "Certification_course_id_fkey"
 		}).onUpdate("cascade").onDelete("cascade"),
 ])

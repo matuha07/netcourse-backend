@@ -2,25 +2,31 @@ import { Request, Response } from "express";
 import { db } from "../drizzle/db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
     const { email, password, username, avatarUrl } = (req as any).validated
       .body;
-    
-    const [user] = await db.insert(users).values({
-      email,
-      password,
-      username,
-      avatarUrl,
-    }).returning();
+
+    // Hash password before storing
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const [user] = await db
+      .insert(users)
+      .values({
+        email,
+        password: hashedPassword,
+        username,
+        avatarUrl,
+      })
+      .returning();
 
     res.status(201).json(user);
   } catch (error: any) {
     console.error("Error creating user:", error);
 
-    // Drizzle throws different errors - check for unique constraint violation
-    if (error?.code === '23505' || error?.message?.includes('unique')) {
+    if (error?.code === "23505" || error?.message?.includes("unique")) {
       return res
         .status(409)
         .json({ error: "User with this email already exists" });
@@ -60,13 +66,20 @@ export const updateUser = async (req: Request, res: Response) => {
         .json({ error: "forbidden: you can only update your own account" });
     }
 
-    const [user] = await db.update(users)
-      .set({
-        email,
-        password,
-        username,
-        avatarUrl,
-      })
+    // Build update object with only provided fields
+    const updateData: any = {};
+    if (email !== undefined) updateData.email = email;
+    if (username !== undefined) updateData.username = username;
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+
+    // Hash password if provided
+    if (password !== undefined) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    const [user] = await db
+      .update(users)
+      .set(updateData)
       .where(eq(users.id, targetUserId))
       .returning();
 
@@ -89,8 +102,7 @@ export const deleteUser = async (req: Request, res: Response) => {
         .json({ error: "forbidden: you can only delete your own account" });
     }
 
-    await db.delete(users)
-      .where(eq(users.id, targetUserId));
+    await db.delete(users).where(eq(users.id, targetUserId));
 
     res.status(204).send();
   } catch (error) {

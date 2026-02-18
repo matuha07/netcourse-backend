@@ -7,12 +7,15 @@ export const createAnswer = async (req: Request, res: Response) => {
   try {
     const { questionId } = req.params;
     const { answerText, isCorrect } = (req as any).validated.body;
-    
-    const [answer] = await db.insert(answers).values({
-      questionId: Number(questionId),
-      answerText,
-      isCorrect,
-    }).returning();
+
+    const [answer] = await db
+      .insert(answers)
+      .values({
+        questionId: Number(questionId),
+        answerText,
+        isCorrect,
+      })
+      .returning();
 
     res.status(201).json(answer);
   } catch {
@@ -35,14 +38,14 @@ export const getAllAnswers = async (req: Request, res: Response) => {
 export const getAnswerById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
+
     const answer = await db.query.answers.findFirst({
       where: eq(answers.id, Number(id)),
       with: { question: true },
     });
 
     if (!answer) return res.status(404).json({ error: "Answer not found" });
-    
+
     res.json(answer);
   } catch {
     res.status(500).json({ error: "Failed to fetch answer" });
@@ -53,11 +56,16 @@ export const updateAnswer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { answerText, isCorrect } = (req as any).validated.body;
-    
-    const [updated] = await db.update(answers)
+
+    const [updated] = await db
+      .update(answers)
       .set({ answerText, isCorrect })
       .where(eq(answers.id, Number(id)))
       .returning();
+
+    if (!updated) {
+      return res.status(404).json({ error: "Answer not found" });
+    }
 
     res.json(updated);
   } catch {
@@ -68,9 +76,8 @@ export const updateAnswer = async (req: Request, res: Response) => {
 export const deleteAnswer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
-    await db.delete(answers)
-      .where(eq(answers.id, Number(id)));
+
+    await db.delete(answers).where(eq(answers.id, Number(id)));
 
     res.status(204).send();
   } catch {

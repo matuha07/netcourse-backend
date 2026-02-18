@@ -8,6 +8,8 @@ import answerRoutes from "./answers";
 import userRoutes from "./users";
 import progressRoutes from "./progress";
 import authRoutes from "./auth";
+import badgesRoutes from "./badges";
+import certificationsRoutes from "./certifications";
 
 
 const router = Router();
@@ -47,5 +49,11 @@ router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions/:questionId/answers",
   answerRoutes,
 );
+
+// badges
+router.use("/badges", badgesRoutes);
+
+// certifications
+router.use("/certifications", certificationsRoutes);
 
 export default router;

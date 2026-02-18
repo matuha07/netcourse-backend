@@ -9,6 +9,9 @@ import answerRoutes from "./answers";
 import enrollmentRoutes from "./enrollments";
 import progressRoutes from "./progress";
 import userRoutes from "./users";
+import socialLinksRoutes from "./sociallinks";
+import badgesRoutes from "./badges";
+import certificationsRoutes from "./certifications";
 
 const router = Router();
 
@@ -51,5 +54,14 @@ router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions/:questionId/answers",
   answerRoutes,
 );
+
+// social links
+router.use("/social-links", socialLinksRoutes);
+
+// badges
+router.use("/badges", badgesRoutes);
+
+// certifications
+router.use("/certifications", certificationsRoutes);
 
 export default router;

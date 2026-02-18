@@ -6,12 +6,15 @@ import { eq } from "drizzle-orm";
 export const createCourse = async (req: Request, res: Response) => {
   try {
     const { title, description, category } = (req as any).validated.body;
-    
-    const [course] = await db.insert(courses).values({
-      title,
-      description,
-      category,
-    }).returning();
+
+    const [course] = await db
+      .insert(courses)
+      .values({
+        title,
+        description,
+        category,
+      })
+      .returning();
 
     res.status(201).json(course);
   } catch (error) {
@@ -39,7 +42,7 @@ export const getAllCourses = async (req: Request, res: Response) => {
 export const getCourseById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
+
     const course = await db.query.courses.findFirst({
       where: eq(courses.id, Number(id)),
       with: {
@@ -64,10 +67,15 @@ export const updateCourse = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { title, description, category } = (req as any).validated.body;
 
-    const [updated] = await db.update(courses)
+    const [updated] = await db
+      .update(courses)
       .set({ title, description, category })
       .where(eq(courses.id, Number(id)))
       .returning();
+
+    if (!updated) {
+      return res.status(404).json({ error: "Course not found" });
+    }
 
     res.json(updated);
   } catch (error) {
@@ -79,9 +87,8 @@ export const updateCourse = async (req: Request, res: Response) => {
 export const deleteCourse = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
-    await db.delete(courses)
-      .where(eq(courses.id, Number(id)));
+
+    await db.delete(courses).where(eq(courses.id, Number(id)));
 
     res.status(204).send();
   } catch (error) {
