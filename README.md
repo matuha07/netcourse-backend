@@ -6,16 +6,20 @@ npm install
 
 2. Настроить окружение .env:
 ```
-DATABASE_URL="postgresql://dummy:dummypass@localhost:5433/netskills?schema=public"
+DB_HOST="localhost"
+DB_PORT="5432"
+DB_USERNAME="dummy"
+DB_PASSWORD="dummypass"
+DB_NAME="netcourse"
 ```
 3. Запустить Docker Compose:
 ```
 docker compose up
 ```
 
-4. Синхронизировать таблицы (также создаст БД, если нету):
+4. Применить миграции Drizzle (также создаст таблицы, если их нет):
 ```
-npx prisma migrate dev
+npx drizzle-kit migrate --config ./src/drizzle.config.ts
 ```
 
 5. Запустить сервер:

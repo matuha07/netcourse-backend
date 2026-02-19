@@ -609,6 +609,24 @@
 }
 ```
 
+### GET /certifications/:code/pdf
+
+Скачать PDF сертификата по коду.
+
+**Параметры:**
+- `code` (string) - Код сертификата
+
+**Response:**
+- `200` с `Content-Type: application/pdf`
+- `Content-Disposition: inline; filename="certificate-<code>.pdf"`
+
+**Response (сертификат не найден):**
+```json
+{
+  "error": "Certificate not found"
+}
+```
+
 ---
 
 ## Ссылки на соц. сети (Social Links)
