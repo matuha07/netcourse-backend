@@ -1,8 +1,12 @@
+// certificateController.ts - WITH RUSSIAN SUPPORT
+
 import { Request, Response } from "express";
 const PDFDocument = require("pdfkit");
 import { db } from "../drizzle/db";
 import { certifications, users, courses } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import path from "path";
+import fs from "fs";
 
 export const getMyCertifications = async (req: Request, res: Response) => {
   try {
@@ -90,9 +94,13 @@ export const getCertificatePdf = async (req: Request, res: Response) => {
     }
 
     const issuedOn = cert.issuedAt
-      ? new Date(cert.issuedAt).toISOString().slice(0, 10)
-      : "N/A";
-    const username = user.username || "Student";
+      ? new Date(cert.issuedAt).toLocaleDateString("ru-RU", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "Н/Д";
+    const username = user.username || "Студент";
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -109,6 +117,23 @@ export const getCertificatePdf = async (req: Request, res: Response) => {
     });
 
     doc.pipe(res);
+
+    // ============ РЕГИСТРАЦИЯ ШРИФТОВ С ПОДДЕРЖКОЙ КИРИЛЛИЦЫ ============
+    const fontsDir = path.join(__dirname, "../../fonts");
+
+    // Проверка существования шрифтов
+    const robotoRegularPath = path.join(fontsDir, "Roboto-Regular.ttf");
+    const robotoBoldPath = path.join(fontsDir, "Roboto-Bold.ttf");
+
+    if (fs.existsSync(robotoRegularPath) && fs.existsSync(robotoBoldPath)) {
+      doc.registerFont("Roboto", robotoRegularPath);
+      doc.registerFont("Roboto-Bold", robotoBoldPath);
+    } else {
+      // Fallback: используем системные шрифты (если есть)
+      console.warn(
+        "⚠️ Roboto fonts not found. Certificate may not display Cyrillic correctly.",
+      );
+    }
 
     const darkBg = "#0f172a";
     const lightText = "#f1f5f9";
@@ -128,11 +153,12 @@ export const getCertificatePdf = async (req: Request, res: Response) => {
 
     const mx = 50;
 
+    // ✅ Используем Roboto-Bold для заголовка
     doc
       .fontSize(36)
-      .font("Helvetica-Bold")
+      .font("Roboto-Bold")
       .fillColor(emeraldLight)
-      .text("Certificate of Completion", mx, 120, { align: "center" });
+      .text("Сертификат о Прохождении", mx, 120, { align: "center" });
 
     doc
       .strokeColor(emeraldAccent)
@@ -143,31 +169,35 @@ export const getCertificatePdf = async (req: Request, res: Response) => {
       .stroke();
     doc.opacity(1);
 
+    // ✅ Roboto для обычного текста
     doc
       .fontSize(14)
-      .font("Helvetica")
+      .font("Roboto")
       .fillColor(lightText)
-      .text("This certifies that", mx, 210, { align: "center" });
+      .text("Настоящим подтверждается, что", mx, 210, { align: "center" });
 
+    // ✅ Roboto-Bold для имени пользователя
     doc
       .fontSize(28)
-      .font("Helvetica-Bold")
+      .font("Roboto-Bold")
       .fillColor(emeraldAccent)
       .text(username, mx, 260, { align: "center" });
 
+    // ✅ Roboto для обычного текста
     doc
       .fontSize(14)
-      .font("Helvetica")
+      .font("Roboto")
       .fillColor(lightText)
-      .text("has successfully completed the course", mx, 320, {
+      .text("успешно завершил(а) курс", mx, 320, {
         align: "center",
       });
 
+    // ✅ Roboto-Bold для названия курса
     doc
       .fontSize(16)
-      .font("Helvetica-Bold")
+      .font("Roboto-Bold")
       .fillColor(emeraldLight)
-      .text(`"${course.title}"`, mx, 350, { align: "center" });
+      .text(`«${course.title}»`, mx, 350, { align: "center" });
 
     doc
       .strokeColor(emeraldAccent)
@@ -178,24 +208,27 @@ export const getCertificatePdf = async (req: Request, res: Response) => {
       .stroke();
     doc.opacity(1);
 
+    // ✅ Roboto для даты
     doc
       .fontSize(11)
-      .font("Helvetica")
+      .font("Roboto")
       .fillColor(lightText)
-      .text(`Issued on ${issuedOn}`, mx, 450, { align: "center" });
+      .text(`Выдан ${issuedOn}`, mx, 450, { align: "center" });
 
+    // ✅ Roboto для кода
     doc
       .fontSize(9)
-      .font("Helvetica")
+      .font("Roboto")
       .fillColor(emeraldAccent)
       .opacity(0.7)
-      .text(`Certificate Code: ${cert.certificateCode}`, mx, 700, {
+      .text(`Код сертификата: ${cert.certificateCode}`, mx, 700, {
         align: "center",
       });
 
     doc.opacity(1);
     doc.end();
   } catch (error) {
+    console.error("Certificate generation error:", error);
     if (!res.headersSent) {
       res.status(500).json({ error: "Failed to generate certificate PDF" });
     }
