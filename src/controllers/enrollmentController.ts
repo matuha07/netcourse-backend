@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { db } from "../drizzle/db";
 import { enrollments } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
+import { sanitizeUserPublic } from "../utils/userPublicFields";
 
 export const createEnrollment = async (req: Request, res: Response) => {
   try {
@@ -46,7 +47,12 @@ export const getEnrollments = async (req: Request, res: Response) => {
             with: { user: true },
           });
 
-    res.json(enrollmentsList);
+    res.json(
+      enrollmentsList.map((enrollment) => ({
+        ...enrollment,
+        user: sanitizeUserPublic(enrollment.user),
+      })),
+    );
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch enrollments" });
   }

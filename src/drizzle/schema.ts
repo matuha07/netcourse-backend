@@ -344,3 +344,62 @@ export const certifications = pgTable(
       .onDelete("cascade"),
   ],
 );
+
+// Forum posts table
+export const forumPosts = pgTable(
+  "forum_posts",
+  {
+    id: serial().primaryKey().notNull(),
+    userId: integer("user_id").notNull(),
+    title: text().notNull(),
+    body: text().notNull(),
+    createdAt: timestamp("created_at", { precision: 3, mode: "date" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { precision: 3, mode: "date" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [users.id],
+      name: "ForumPosts_user_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+// Forum replies table
+export const forumReplies = pgTable(
+  "forum_replies",
+  {
+    id: serial().primaryKey().notNull(),
+    postId: integer("post_id").notNull(),
+    userId: integer("user_id").notNull(),
+    body: text().notNull(),
+    createdAt: timestamp("created_at", { precision: 3, mode: "date" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { precision: 3, mode: "date" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.postId],
+      foreignColumns: [forumPosts.id],
+      name: "ForumReplies_post_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [users.id],
+      name: "ForumReplies_user_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);

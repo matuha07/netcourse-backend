@@ -12,6 +12,8 @@ import userRoutes from "./users";
 import socialLinksRoutes from "./sociallinks";
 import badgesRoutes from "./badges";
 import certificationsRoutes from "./certifications";
+import forumPostsRoutes from "./forumPosts";
+import forumRepliesRoutes from "./forumReplies";
 
 const router = Router();
 
@@ -63,5 +65,11 @@ router.use("/badges", badgesRoutes);
 
 // certifications
 router.use("/certifications", certificationsRoutes);
+
+// forum posts
+router.use("/forum/posts", forumPostsRoutes);
+
+// forum replies
+router.use("/forum/posts/:postId/replies", forumRepliesRoutes);
 
 export default router;

@@ -3,6 +3,19 @@ import { db } from "../drizzle/db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { sanitizeUserPrivate } from "../utils/userPublicFields";
+
+const sanitizeUserWithRelations = (user: any) => {
+  if (!user) return user;
+
+  const { enrollments, progresses } = user;
+
+  return {
+    ...sanitizeUserPrivate(user),
+    enrollments,
+    progresses,
+  };
+};
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -23,7 +36,7 @@ export const createUser = async (req: Request, res: Response) => {
       })
       .returning();
 
-    res.status(201).json(user);
+    res.status(201).json(sanitizeUserWithRelations(user));
   } catch (error: any) {
     console.error("Error creating user:", error);
 
@@ -46,7 +59,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
       },
     });
 
-    res.json(usersList);
+    res.json(usersList.map((user) => sanitizeUserWithRelations(user)));
   } catch (error) {
     res.status(500).json({ error: "failed to fetch users" });
   }
@@ -85,7 +98,7 @@ export const updateUser = async (req: Request, res: Response) => {
       .where(eq(users.id, targetUserId))
       .returning();
 
-    res.json(user);
+    res.json(sanitizeUserWithRelations(user));
   } catch (error) {
     res.status(500).json({ error: "failed to update user" });
   }
@@ -137,7 +150,7 @@ export const getUserById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "user not found" });
     }
 
-    res.json(user);
+    res.json(sanitizeUserWithRelations(user));
   } catch (error) {
     res.status(500).json({ error: "failed to fetch user" });
   }

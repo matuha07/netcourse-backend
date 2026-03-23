@@ -80,10 +80,11 @@
   "email": "user@example.com",
   "username": "JohnDoe",
   "avatarUrl": "https://...",
+  "bio": null,
   "role": "USER",
   "createdAt": "2024-01-01T00:00:00.000Z",
   "enrollments": [],
-  "progress": []
+  "progresses": []
 }
 ```
 
@@ -163,10 +164,9 @@
     "enrolledAt": "2024-01-01T00:00:00.000Z",
     "user": {
       "id": 1,
-      "email": "user@example.com",
       "username": "JohnDoe",
       "avatarUrl": "https://...",
-      "role": "USER"
+      "bio": null
     }
   }
 ]
@@ -716,6 +716,138 @@
 
 ---
 
+## Форум (Forum)
+
+Маршруты: `/forum`.
+
+### GET /forum/posts
+
+Получить список постов форума.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "title": "First post",
+    "body": "Hello forum!",
+    "createdAt": "2026-03-23T19:57:31.072Z",
+    "updatedAt": "2026-03-23T19:57:31.072Z",
+    "user": {
+      "id": 1,
+      "username": "JohnDoe",
+      "avatarUrl": "https://...",
+      "bio": null
+    },
+    "replies": []
+  }
+]
+```
+
+### GET /forum/posts/:postId
+
+Получить пост форума по ID.
+
+**Response:**
+```json
+{
+  "id": 1,
+  "userId": 1,
+  "title": "First post",
+  "body": "Hello forum!",
+  "createdAt": "2026-03-23T19:57:31.072Z",
+  "updatedAt": "2026-03-23T19:57:31.072Z",
+  "user": {
+    "id": 1,
+    "username": "JohnDoe",
+    "avatarUrl": "https://...",
+    "bio": null
+  },
+  "replies": []
+}
+```
+
+### POST /forum/posts
+
+Создать новый пост (требуется аутентификация).
+
+**Request Body:**
+```json
+{
+  "title": "First post",
+  "body": "Hello forum!"
+}
+```
+
+### PUT /forum/posts/:postId
+
+Обновить пост (требуется аутентификация, автор или ADMIN).
+
+**Request Body:**
+```json
+{
+  "title": "Updated title",
+  "body": "Updated body"
+}
+```
+
+### DELETE /forum/posts/:postId
+
+Удалить пост (требуется аутентификация, автор или ADMIN).
+
+### GET /forum/posts/:postId/replies
+
+Получить ответы на пост.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "postId": 1,
+    "userId": 2,
+    "body": "Nice post!",
+    "createdAt": "2026-03-23T20:00:00.000Z",
+    "updatedAt": "2026-03-23T20:00:00.000Z",
+    "user": {
+      "id": 2,
+      "username": "JaneDoe",
+      "avatarUrl": "https://...",
+      "bio": null
+    }
+  }
+]
+```
+
+### POST /forum/posts/:postId/replies
+
+Создать ответ на пост (требуется аутентификация).
+
+**Request Body:**
+```json
+{
+  "body": "Nice post!"
+}
+```
+
+### PUT /forum/posts/:postId/replies/:replyId
+
+Обновить ответ (требуется аутентификация, автор или ADMIN).
+
+**Request Body:**
+```json
+{
+  "body": "Updated reply"
+}
+```
+
+### DELETE /forum/posts/:postId/replies/:replyId
+
+Удалить ответ (требуется аутентификация, автор или ADMIN).
+
+---
+
 # Админские маршруты
 
 Все админские маршруты требуют аутентификацию и роль `ADMIN`.
@@ -736,10 +868,11 @@
     "email": "user@example.com",
     "username": "JohnDoe",
     "avatarUrl": "https://...",
+    "bio": null,
     "role": "USER",
     "createdAt": "2024-01-01T00:00:00.000Z",
     "enrollments": [],
-    "progress": []
+    "progresses": []
   }
 ]
 ```
@@ -755,10 +888,11 @@
   "email": "user@example.com",
   "username": "JohnDoe",
   "avatarUrl": "https://...",
+  "bio": null,
   "role": "USER",
   "createdAt": "2024-01-01T00:00:00.000Z",
   "enrollments": [],
-  "progress": []
+  "progresses": []
 }
 ```
 
@@ -792,6 +926,66 @@
 ### DELETE /admin/users/:id
 
 Удалить пользователя.
+
+---
+
+## Форум (Forum)
+
+Маршруты: `/admin/forum`.
+
+### POST /admin/forum/posts
+
+Создать новый пост (только ADMIN).
+
+**Request Body:**
+```json
+{
+  "title": "First post",
+  "body": "Hello forum!"
+}
+```
+
+### PUT /admin/forum/posts/:postId
+
+Обновить пост (только ADMIN).
+
+**Request Body:**
+```json
+{
+  "title": "Updated title",
+  "body": "Updated body"
+}
+```
+
+### DELETE /admin/forum/posts/:postId
+
+Удалить пост (только ADMIN).
+
+### POST /admin/forum/posts/:postId/replies
+
+Создать ответ на пост (только ADMIN).
+
+**Request Body:**
+```json
+{
+  "body": "Nice post!"
+}
+```
+
+### PUT /admin/forum/posts/:postId/replies/:replyId
+
+Обновить ответ (только ADMIN).
+
+**Request Body:**
+```json
+{
+  "body": "Updated reply"
+}
+```
+
+### DELETE /admin/forum/posts/:postId/replies/:replyId
+
+Удалить ответ (только ADMIN).
 
 ---
 
@@ -1046,9 +1240,9 @@
     "updatedAt": "2024-01-01T00:00:00.000Z",
     "user": {
       "id": 1,
-      "email": "user@example.com",
       "username": "JohnDoe",
-      "role": "USER"
+      "avatarUrl": "https://...",
+      "bio": null
     }
   }
 ]

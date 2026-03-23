@@ -3,6 +3,7 @@ import { db } from "../drizzle/db";
 import { progress, certifications, badges, userBadges } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import { randomBytes } from "crypto";
+import { sanitizeUserPublic } from "../utils/userPublicFields";
 
 const awardOnCompletion = async (userId: number, courseId: number) => {
   const existingCert = await db.query.certifications.findFirst({
@@ -107,7 +108,12 @@ export const getAllCourseProgress = async (req: Request, res: Response) => {
       with: { user: true },
     });
 
-    res.json(progressList);
+    res.json(
+      progressList.map((item) => ({
+        ...item,
+        user: sanitizeUserPublic(item.user),
+      })),
+    );
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch progress" });
   }
