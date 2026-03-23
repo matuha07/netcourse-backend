@@ -1,5 +1,3 @@
-// certificateController.ts - WITH RUSSIAN SUPPORT
-
 import { Request, Response } from "express";
 const PDFDocument = require("pdfkit");
 import { db } from "../drizzle/db";

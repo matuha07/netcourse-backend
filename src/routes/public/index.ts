@@ -17,59 +17,29 @@ import forumRepliesRoutes from "./forumReplies";
 
 const router = Router();
 
-// auth
 router.use("/auth", authRoutes);
-
-
-// users
 router.use("/users", userRoutes);
-
-// courses
 router.use("/courses", courseRoutes);
-
-// course's enrollments
 router.use("/courses/:courseId/enrollments", enrollmentRoutes);
-
-// course's sections
 router.use("/courses/:courseId/sections", sectionRoutes);
-
-// section's lessons
 router.use("/courses/:courseId/sections/:sectionId/lessons", lessonRoutes);
-
-// progress
 router.use("/courses/:courseId/progress", progressRoutes);
-
-// lesson's quizzes
 router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes",
   quizRoutes,
 );
-
-// quiz questions
 router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions",
   questionRoutes,
 );
-
-// quiz answers
 router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions/:questionId/answers",
   answerRoutes,
 );
-
-// social links
 router.use("/social-links", socialLinksRoutes);
-
-// badges
 router.use("/badges", badgesRoutes);
-
-// certifications
 router.use("/certifications", certificationsRoutes);
-
-// forum posts
 router.use("/forum/posts", forumPostsRoutes);
-
-// forum replies
 router.use("/forum/posts/:postId/replies", forumRepliesRoutes);
 
 export default router;

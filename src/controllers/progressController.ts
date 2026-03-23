@@ -39,8 +39,6 @@ const awardOnCompletion = async (userId: number, courseId: number) => {
   }
 };
 
-// public
-
 export const getUserProgress = async (req: Request, res: Response) => {
   try {
     const { courseId } = req.params;
@@ -118,8 +116,6 @@ export const getAllCourseProgress = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to fetch progress" });
   }
 };
-
-// admin
 
 export const getUserProgressAdmin = async (req: Request, res: Response) => {
   try {

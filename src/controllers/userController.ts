@@ -22,7 +22,6 @@ export const createUser = async (req: Request, res: Response) => {
     const { email, password, username, avatarUrl, bio } = (req as any).validated
       .body;
 
-    // Hash password before storing
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [user] = await db
@@ -80,14 +79,12 @@ export const updateUser = async (req: Request, res: Response) => {
         .json({ error: "forbidden: you can only update your own account" });
     }
 
-    // Build update object with only provided fields
     const updateData: any = {};
     if (email !== undefined) updateData.email = email;
     if (username !== undefined) updateData.username = username;
     if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
     if (bio !== undefined) updateData.bio = bio;
 
-    // Hash password if provided
     if (password !== undefined) {
       updateData.password = await bcrypt.hash(password, 10);
     }

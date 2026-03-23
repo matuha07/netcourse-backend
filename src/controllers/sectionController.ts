@@ -3,9 +3,6 @@ import { db } from "../drizzle/db";
 import { sections, courses } from "../drizzle/schema";
 import { eq, and, asc } from "drizzle-orm";
 
-/**
- * Create a section scoped to a specific course (courseId from route params).
- */
 export const createSection = async (req: Request, res: Response) => {
   try {
     const { courseId } = req.params;
@@ -36,9 +33,6 @@ export const createSection = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Get all sections for a specific course (scoped by courseId).
- */
 export const getAllSections = async (req: Request, res: Response) => {
   try {
     const { courseId } = req.params;
@@ -63,7 +57,6 @@ export const getAllSections = async (req: Request, res: Response) => {
       `[sectionController] getAllSections returning ${Array.isArray(sectionsList) ? sectionsList.length : 0} sections for courseId=${courseId}`,
     );
 
-    // Debug headers: indicate that this response corresponds to requested courseId and how many sections returned
     try {
       res.setHeader("X-Debug-CourseId", String(courseId));
       res.setHeader(
@@ -81,9 +74,6 @@ export const getAllSections = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Get a single section by id, but ensure it belongs to the provided courseId.
- */
 export const getSectionById = async (req: Request, res: Response) => {
   try {
     const { courseId, sectionId } = req.params;
@@ -113,7 +103,6 @@ export const getSectionById = async (req: Request, res: Response) => {
         .json({ error: "Section not found for this course" });
     }
 
-    // Debug headers for single-section response
     try {
       res.setHeader("X-Debug-Requested-CourseId", String(courseId));
       res.setHeader("X-Debug-Section-CourseId", String(section.courseId));
@@ -132,9 +121,6 @@ export const getSectionById = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Update a section. Uses route param `sectionId` and ensures section belongs to courseId.
- */
 export const updateSection = async (req: Request, res: Response) => {
   try {
     const { courseId, sectionId } = req.params;
@@ -166,9 +152,6 @@ export const updateSection = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Delete a section. Uses route param `sectionId` and ensures section belongs to courseId.
- */
 export const deleteSection = async (req: Request, res: Response) => {
   try {
     const { courseId, sectionId } = req.params;

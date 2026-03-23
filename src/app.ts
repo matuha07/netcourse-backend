@@ -14,11 +14,7 @@ app.use("/api/admin", (req, _res, next) => {
   req.headers["x-turnstile-token"] = "BYPASS";
   next();
 });
-// public
-
 app.use("/api", publicRoutes);
-
-// admin
 app.use("/api/admin", adminRoutes);
 app.use("/admin", express.static("public/admin"));
 

@@ -16,52 +16,27 @@ import forumRepliesRoutes from "./forumReplies";
 
 const router = Router();
 
-// auth
 router.use("/auth", authRoutes);
-
-// courses
 router.use("/courses", courseRoutes);
-
-// course's sections
 router.use("/courses/:courseId/sections", sectionRoutes);
-
-// progress
 router.use("/courses/:courseId/progress", progressRoutes);
-
-// section's lessons
 router.use("/courses/:courseId/sections/:sectionId/lessons", lessonRoutes);
-
-// user's
 router.use("/users", userRoutes);
-
-// lesson's quizzes
 router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes",
   quizRoutes,
 );
-
-// quiz questions
 router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions",
   questionRoutes,
 );
-
-// quiz answers
 router.use(
   "/courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/questions/:questionId/answers",
   answerRoutes,
 );
-
-// badges
 router.use("/badges", badgesRoutes);
-
-// certifications
 router.use("/certifications", certificationsRoutes);
-
-// forum posts
 router.use("/forum/posts", forumPostsRoutes);
-
-// forum replies
 router.use("/forum/posts/:postId/replies", forumRepliesRoutes);
 
 export default router;
