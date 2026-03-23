@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../drizzle/db";
 import { forumPosts } from "../drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { sanitizeUserPublic } from "../utils/userPublicFields";
 
 export const createForumPost = async (req: Request, res: Response) => {
@@ -50,6 +50,17 @@ export const createForumPost = async (req: Request, res: Response) => {
 
 export const getAllForumPosts = async (_req: Request, res: Response) => {
   try {
+    const page = Math.max(1, Number(_req.query.page) || 1);
+    const limitRaw = Number(_req.query.limit) || 20;
+    const limit = Math.min(Math.max(1, limitRaw), 100);
+    const offset = (page - 1) * limit;
+
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(forumPosts);
+    const total = Number(countResult?.count ?? 0);
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+
     const posts = await db.query.forumPosts.findMany({
       with: {
         user: true,
@@ -60,10 +71,12 @@ export const getAllForumPosts = async (_req: Request, res: Response) => {
         },
       },
       orderBy: desc(forumPosts.createdAt),
+      limit,
+      offset,
     });
 
-    res.json(
-      posts.map((post) => ({
+    res.json({
+      data: posts.map((post) => ({
         ...post,
         user: sanitizeUserPublic(post.user),
         replies: post.replies?.map((reply) => ({
@@ -71,7 +84,13 @@ export const getAllForumPosts = async (_req: Request, res: Response) => {
           user: sanitizeUserPublic(reply.user),
         })),
       })),
-    );
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    });
   } catch (error) {
     console.error("[forumPostController] getAllForumPosts error:", error);
     res.status(500).json({ error: "Failed to fetch forum posts" });

@@ -724,25 +724,37 @@
 
 Получить список постов форума.
 
+**Query Params (optional):**
+- `page` (number, default: 1)
+- `limit` (number, default: 20, max: 100)
+
 **Response:**
 ```json
-[
-  {
-    "id": 1,
-    "userId": 1,
-    "title": "First post",
-    "body": "Hello forum!",
-    "createdAt": "2026-03-23T19:57:31.072Z",
-    "updatedAt": "2026-03-23T19:57:31.072Z",
-    "user": {
+{
+  "data": [
+    {
       "id": 1,
-      "username": "JohnDoe",
-      "avatarUrl": "https://...",
-      "bio": null
-    },
-    "replies": []
+      "userId": 1,
+      "title": "First post",
+      "body": "Hello forum!",
+      "createdAt": "2026-03-23T19:57:31.072Z",
+      "updatedAt": "2026-03-23T19:57:31.072Z",
+      "user": {
+        "id": 1,
+        "username": "JohnDoe",
+        "avatarUrl": "https://...",
+        "bio": null
+      },
+      "replies": []
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
   }
-]
+}
 ```
 
 ### GET /forum/posts/:postId
@@ -800,24 +812,36 @@
 
 Получить ответы на пост.
 
+**Query Params (optional):**
+- `page` (number, default: 1)
+- `limit` (number, default: 20, max: 100)
+
 **Response:**
 ```json
-[
-  {
-    "id": 1,
-    "postId": 1,
-    "userId": 2,
-    "body": "Nice post!",
-    "createdAt": "2026-03-23T20:00:00.000Z",
-    "updatedAt": "2026-03-23T20:00:00.000Z",
-    "user": {
-      "id": 2,
-      "username": "JaneDoe",
-      "avatarUrl": "https://...",
-      "bio": null
+{
+  "data": [
+    {
+      "id": 1,
+      "postId": 1,
+      "userId": 2,
+      "body": "Nice post!",
+      "createdAt": "2026-03-23T20:00:00.000Z",
+      "updatedAt": "2026-03-23T20:00:00.000Z",
+      "user": {
+        "id": 2,
+        "username": "JaneDoe",
+        "avatarUrl": "https://...",
+        "bio": null
+      }
     }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
   }
-]
+}
 ```
 
 ### POST /forum/posts/:postId/replies

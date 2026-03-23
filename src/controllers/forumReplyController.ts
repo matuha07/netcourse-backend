@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../drizzle/db";
 import { forumPosts, forumReplies } from "../drizzle/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, sql } from "drizzle-orm";
 import { sanitizeUserPublic } from "../utils/userPublicFields";
 
 export const createForumReply = async (req: Request, res: Response) => {
@@ -52,6 +52,17 @@ export const createForumReply = async (req: Request, res: Response) => {
 export const getForumRepliesForPost = async (req: Request, res: Response) => {
   try {
     const { postId } = req.params;
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limitRaw = Number(req.query.limit) || 20;
+    const limit = Math.min(Math.max(1, limitRaw), 100);
+    const offset = (page - 1) * limit;
+
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(forumReplies)
+      .where(eq(forumReplies.postId, Number(postId)));
+    const total = Number(countResult?.count ?? 0);
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     const replies = await db.query.forumReplies.findMany({
       where: eq(forumReplies.postId, Number(postId)),
@@ -59,14 +70,22 @@ export const getForumRepliesForPost = async (req: Request, res: Response) => {
         user: true,
       },
       orderBy: asc(forumReplies.createdAt),
+      limit,
+      offset,
     });
 
-    res.json(
-      replies.map((reply) => ({
+    res.json({
+      data: replies.map((reply) => ({
         ...reply,
         user: sanitizeUserPublic(reply.user),
       })),
-    );
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    });
   } catch (error) {
     console.error("[forumReplyController] getForumRepliesForPost error:", error);
     res.status(500).json({ error: "Failed to fetch forum replies" });
