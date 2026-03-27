@@ -4,3 +4,4 @@ dist
 docker-compose.yml
 /generated/prisma
 .DS_Store
+vscode
