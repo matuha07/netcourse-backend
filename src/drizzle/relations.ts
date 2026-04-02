@@ -3,7 +3,9 @@ import {
 	sections, lessons, quizzes, questions, answers,
 	courses, enrollments, users, progress,
 	userSocialLinks, badges, userBadges, certifications,
-	forumPosts, forumReplies
+	forumPosts, forumReplies,
+	forumTags, forumPostTags, forumReplyTags,
+	forumPostLikes, forumReplyLikes
 } from "./schema";
 
 export const lessonsRelations = relations(lessons, ({one, many}) => ({
@@ -72,6 +74,8 @@ export const usersRelations = relations(users, ({many}) => ({
 	certifications: many(certifications),
 	forumPosts: many(forumPosts),
 	forumReplies: many(forumReplies),
+	forumPostLikes: many(forumPostLikes),
+	forumReplyLikes: many(forumReplyLikes),
 }));
 
 export const progressRelations = relations(progress, ({one}) => ({
@@ -128,15 +132,68 @@ export const forumPostsRelations = relations(forumPosts, ({one, many}) => ({
 		references: [users.id]
 	}),
 	replies: many(forumReplies),
+	tags: many(forumPostTags),
+	likes: many(forumPostLikes),
 }));
 
-export const forumRepliesRelations = relations(forumReplies, ({one}) => ({
+export const forumRepliesRelations = relations(forumReplies, ({one, many}) => ({
 	post: one(forumPosts, {
 		fields: [forumReplies.postId],
 		references: [forumPosts.id]
 	}),
 	user: one(users, {
 		fields: [forumReplies.userId],
+		references: [users.id]
+	}),
+	tags: many(forumReplyTags),
+	likes: many(forumReplyLikes),
+}));
+
+export const forumTagsRelations = relations(forumTags, ({many}) => ({
+	postTags: many(forumPostTags),
+	replyTags: many(forumReplyTags),
+}));
+
+export const forumPostTagsRelations = relations(forumPostTags, ({one}) => ({
+	post: one(forumPosts, {
+		fields: [forumPostTags.postId],
+		references: [forumPosts.id]
+	}),
+	tag: one(forumTags, {
+		fields: [forumPostTags.tagId],
+		references: [forumTags.id]
+	}),
+}));
+
+export const forumReplyTagsRelations = relations(forumReplyTags, ({one}) => ({
+	reply: one(forumReplies, {
+		fields: [forumReplyTags.replyId],
+		references: [forumReplies.id]
+	}),
+	tag: one(forumTags, {
+		fields: [forumReplyTags.tagId],
+		references: [forumTags.id]
+	}),
+}));
+
+export const forumPostLikesRelations = relations(forumPostLikes, ({one}) => ({
+	post: one(forumPosts, {
+		fields: [forumPostLikes.postId],
+		references: [forumPosts.id]
+	}),
+	user: one(users, {
+		fields: [forumPostLikes.userId],
+		references: [users.id]
+	}),
+}));
+
+export const forumReplyLikesRelations = relations(forumReplyLikes, ({one}) => ({
+	reply: one(forumReplies, {
+		fields: [forumReplyLikes.replyId],
+		references: [forumReplies.id]
+	}),
+	user: one(users, {
+		fields: [forumReplyLikes.userId],
 		references: [users.id]
 	}),
 }));

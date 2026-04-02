@@ -4,6 +4,7 @@ export const createForumPostSchema = z.object({
   body: z.object({
     title: z.string().min(3).max(200),
     body: z.string().min(1),
+    tags: z.array(z.string().min(1).max(50)).max(20).optional(),
   }),
 });
 
@@ -16,6 +17,7 @@ export const updateForumPostSchema = z.object({
   body: z.object({
     title: z.string().min(3).max(200).optional(),
     body: z.string().min(1).optional(),
+    tags: z.array(z.string().min(1).max(50)).max(20).optional(),
   }),
 });
 

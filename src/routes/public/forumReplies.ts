@@ -4,6 +4,8 @@ import {
   createForumReply,
   updateForumReply,
   deleteForumReply,
+  likeForumReply,
+  unlikeForumReply,
 } from "../../controllers/forumReplyController";
 import { authenticate } from "../../middleware/authMiddleware";
 import { validate } from "../../middleware/validate";
@@ -16,6 +18,8 @@ const router = Router({ mergeParams: true });
 
 router.get("/", getForumRepliesForPost);
 router.post("/", authenticate, validate(createForumReplySchema), createForumReply);
+router.post("/:replyId/likes", authenticate, likeForumReply);
+router.delete("/:replyId/likes", authenticate, unlikeForumReply);
 router.put(
   "/:replyId",
   authenticate,

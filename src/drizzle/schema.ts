@@ -403,3 +403,148 @@ export const forumReplies = pgTable(
       .onDelete("cascade"),
   ],
 );
+
+// Forum tags table
+export const forumTags = pgTable(
+  "forum_tags",
+  {
+    id: serial().primaryKey().notNull(),
+    name: text().notNull(),
+  },
+  (table) => [
+    uniqueIndex("forum_tags_name_key").using(
+      "btree",
+      table.name.asc().nullsLast().op("text_ops"),
+    ),
+  ],
+);
+
+// Forum post tags join table
+export const forumPostTags = pgTable(
+  "forum_post_tags",
+  {
+    id: serial().primaryKey().notNull(),
+    postId: integer("post_id").notNull(),
+    tagId: integer("tag_id").notNull(),
+  },
+  (table) => [
+    uniqueIndex("forum_post_tags_post_id_tag_id_key").using(
+      "btree",
+      table.postId.asc().nullsLast().op("int4_ops"),
+      table.tagId.asc().nullsLast().op("int4_ops"),
+    ),
+    foreignKey({
+      columns: [table.postId],
+      foreignColumns: [forumPosts.id],
+      name: "ForumPostTags_post_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.tagId],
+      foreignColumns: [forumTags.id],
+      name: "ForumPostTags_tag_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+// Forum reply tags join table
+export const forumReplyTags = pgTable(
+  "forum_reply_tags",
+  {
+    id: serial().primaryKey().notNull(),
+    replyId: integer("reply_id").notNull(),
+    tagId: integer("tag_id").notNull(),
+  },
+  (table) => [
+    uniqueIndex("forum_reply_tags_reply_id_tag_id_key").using(
+      "btree",
+      table.replyId.asc().nullsLast().op("int4_ops"),
+      table.tagId.asc().nullsLast().op("int4_ops"),
+    ),
+    foreignKey({
+      columns: [table.replyId],
+      foreignColumns: [forumReplies.id],
+      name: "ForumReplyTags_reply_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.tagId],
+      foreignColumns: [forumTags.id],
+      name: "ForumReplyTags_tag_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+// Forum post likes table
+export const forumPostLikes = pgTable(
+  "forum_post_likes",
+  {
+    id: serial().primaryKey().notNull(),
+    postId: integer("post_id").notNull(),
+    userId: integer("user_id").notNull(),
+    createdAt: timestamp("created_at", { precision: 3, mode: "date" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("forum_post_likes_post_id_user_id_key").using(
+      "btree",
+      table.postId.asc().nullsLast().op("int4_ops"),
+      table.userId.asc().nullsLast().op("int4_ops"),
+    ),
+    foreignKey({
+      columns: [table.postId],
+      foreignColumns: [forumPosts.id],
+      name: "ForumPostLikes_post_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [users.id],
+      name: "ForumPostLikes_user_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+// Forum reply likes table
+export const forumReplyLikes = pgTable(
+  "forum_reply_likes",
+  {
+    id: serial().primaryKey().notNull(),
+    replyId: integer("reply_id").notNull(),
+    userId: integer("user_id").notNull(),
+    createdAt: timestamp("created_at", { precision: 3, mode: "date" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("forum_reply_likes_reply_id_user_id_key").using(
+      "btree",
+      table.replyId.asc().nullsLast().op("int4_ops"),
+      table.userId.asc().nullsLast().op("int4_ops"),
+    ),
+    foreignKey({
+      columns: [table.replyId],
+      foreignColumns: [forumReplies.id],
+      name: "ForumReplyLikes_reply_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [users.id],
+      name: "ForumReplyLikes_user_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);

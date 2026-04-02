@@ -6,6 +6,7 @@ export const createForumReplySchema = z.object({
   }),
   body: z.object({
     body: z.string().min(1),
+    tags: z.array(z.string().min(1).max(50)).max(20).optional(),
   }),
 });
 
@@ -17,6 +18,7 @@ export const updateForumReplySchema = z.object({
   }),
   body: z.object({
     body: z.string().min(1),
+    tags: z.array(z.string().min(1).max(50)).max(20).optional(),
   }),
 });
 
