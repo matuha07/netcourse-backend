@@ -4,6 +4,8 @@
 
 /api
 
+Служебный endpoint `GET /health` находится вне базового префикса (`/api`).
+
 ---
 
 # Аутентификация
@@ -11,6 +13,8 @@
 ## POST /auth/register
 
 Регистрация нового пользователя.
+
+**Rate limit:** максимум 3 запроса в 60 минут на IP.
 
 **Request Body:**
 ```json
@@ -35,9 +39,18 @@
 }
 ```
 
+**Response (лимит превышен):**
+```json
+{
+  "error": "Too many registration attempts, please try again later"
+}
+```
+
 ## POST /auth/login
 
 Авторизация, получение JWT.
+
+**Rate limit:** максимум 5 запросов в 15 минут на IP.
 
 **Request Body:**
 ```json
@@ -61,9 +74,33 @@
 }
 ```
 
+**Response (лимит превышен):**
+```json
+{
+  "error": "Too many login attempts, please try again later"
+}
+```
+
 ---
 
 # Публичные маршруты
+
+## Служебные маршруты
+
+### GET /health
+
+Liveness check для оркестрации/мониторинга.
+
+**Аутентификация:** не требуется.
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "uptime": 123.456,
+  "timestamp": "2026-04-25T10:20:30.000Z"
+}
+```
 
 ## Пользователи (Users)
 
@@ -103,6 +140,54 @@
 ### DELETE /users/:id
 
 Удалить пользователя.
+
+---
+
+## Публичные профили (Profiles)
+
+Маршруты определены в `/profiles`. Аутентификация не требуется.
+
+### GET /profiles/:id
+
+Получить публичный профиль пользователя по ID.
+
+**Response:**
+```json
+{
+  "id": 1,
+  "username": "JohnDoe",
+  "avatarUrl": "https://...",
+  "bio": "Frontend dev",
+  "socialLinks": [
+    {
+      "id": 1,
+      "platform": "github",
+      "url": "https://github.com/johndoe"
+    }
+  ],
+  "certifications": [
+    {
+      "id": 10,
+      "issuedAt": "2026-02-15T10:30:00.000Z",
+      "course": {
+        "id": 1,
+        "title": "JavaScript для начинающих",
+        "category": "Programming"
+      }
+    }
+  ],
+  "stats": {
+    "postsCount": 8,
+    "repliesCount": 34
+  }
+}
+```
+
+### GET /profiles/u/:username
+
+Получить публичный профиль по username.
+
+**Примечание:** `username` уникален.
 
 ---
 
@@ -613,6 +698,10 @@
 
 Скачать PDF сертификата по коду.
 
+**Аутентификация:** требуется.
+
+**Доступ:** только владелец сертификата или ADMIN.
+
 **Параметры:**
 - `code` (string) - Код сертификата
 
@@ -624,6 +713,13 @@
 ```json
 {
   "error": "Certificate not found"
+}
+```
+
+**Response (нет доступа):**
+```json
+{
+  "error": "Forbidden"
 }
 ```
 
