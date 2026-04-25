@@ -1,11 +1,13 @@
 import publicRoutes from "./routes/public";
 import adminRoutes from "./routes/admin";
+import { requestLogger } from "./middleware/requestLogger";
 
 import express, { Application } from "express";
 import cors from "cors";
 
 const app: Application = express();
 app.use(cors());
+app.use(requestLogger);
 
 app.use(express.json());
 app.get("/health", (_req, res) => {
