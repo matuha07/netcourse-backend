@@ -1,8 +1,8 @@
 node_modules
 dist
 .env
-docker-compose.yml
 /generated/prisma
 .DS_Store
 vscode
 logs/
+postgres-data/

@@ -1,13 +1,12 @@
 services:
-  postgres:
-    image: postgres:10.3
+  netcourse-db:
+    image: postgres:18.3-alpine
+    container_name: netcourse-db
     environment:
       - POSTGRES_USER=dummy
       - POSTGRES_PASSWORD=dummypass
       - POSTGRES_DB=netcourse
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - ./postgres-data:/var/lib/postgresql
     ports:
       - "5432:5432"
-volumes:
-  postgres:
