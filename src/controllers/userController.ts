@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
 import { db } from "../drizzle/db";
-import { users } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import {
+  users,
+  forumPosts,
+  forumReplies,
+} from "../drizzle/schema";
+import { eq, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import { sanitizeUserPrivate } from "../utils/userPublicFields";
+import { sanitizeUserPrivate, sanitizeUserPublic } from "../utils/userPublicFields";
 
 const sanitizeUserWithRelations = (user: any) => {
   if (!user) return user;
@@ -14,6 +18,43 @@ const sanitizeUserWithRelations = (user: any) => {
     ...sanitizeUserPrivate(user),
     enrollments,
     progresses,
+  };
+};
+
+const buildPublicProfileResponse = async (user: any) => {
+  const [postsCountResult, repliesCountResult] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(forumPosts)
+      .where(eq(forumPosts.userId, user.id)),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(forumReplies)
+      .where(eq(forumReplies.userId, user.id)),
+  ]);
+
+  return {
+    ...sanitizeUserPublic(user),
+    socialLinks: (user.socialLinks || []).map((link: any) => ({
+      id: link.id,
+      platform: link.platform,
+      url: link.url,
+    })),
+    certifications: (user.certifications || []).map((cert: any) => ({
+      id: cert.id,
+      issuedAt: cert.issuedAt,
+      course: cert.course
+        ? {
+            id: cert.course.id,
+            title: cert.course.title,
+            category: cert.course.category,
+          }
+        : null,
+    })),
+    stats: {
+      postsCount: Number(postsCountResult?.[0]?.count || 0),
+      repliesCount: Number(repliesCountResult?.[0]?.count || 0),
+    },
   };
 };
 
@@ -40,6 +81,9 @@ export const createUser = async (req: Request, res: Response) => {
     console.error("Error creating user:", error);
 
     if (error?.code === "23505" || error?.message?.includes("unique")) {
+      if (error?.constraint === "users_username_key") {
+        return res.status(409).json({ error: "Username is already taken" });
+      }
       return res
         .status(409)
         .json({ error: "User with this email already exists" });
@@ -96,7 +140,13 @@ export const updateUser = async (req: Request, res: Response) => {
       .returning();
 
     res.json(sanitizeUserWithRelations(user));
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === "23505" || error?.message?.includes("unique")) {
+      if (error?.constraint === "users_username_key") {
+        return res.status(409).json({ error: "Username is already taken" });
+      }
+      return res.status(409).json({ error: "Email is already in use" });
+    }
     res.status(500).json({ error: "failed to update user" });
   }
 };
@@ -150,5 +200,69 @@ export const getUserById = async (req: Request, res: Response) => {
     res.json(sanitizeUserWithRelations(user));
   } catch (error) {
     res.status(500).json({ error: "failed to fetch user" });
+  }
+};
+
+export const getPublicProfileById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const targetUserId = Number(id);
+
+    if (!Number.isInteger(targetUserId) || targetUserId <= 0) {
+      return res.status(400).json({ error: "invalid user id" });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, targetUserId),
+      with: {
+        socialLinks: true,
+        certifications: {
+          with: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "user not found" });
+    }
+
+    res.json(await buildPublicProfileResponse(user));
+  } catch (error) {
+    res.status(500).json({ error: "failed to fetch public profile" });
+  }
+};
+
+export const getPublicProfileByUsername = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const username = String(req.params.username || "").trim();
+
+    if (!username) {
+      return res.status(400).json({ error: "username is required" });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.username, username),
+      with: {
+        socialLinks: true,
+        certifications: {
+          with: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "user not found" });
+    }
+
+    res.json(await buildPublicProfileResponse(user));
+  } catch (error) {
+    res.status(500).json({ error: "failed to fetch public profile" });
   }
 };

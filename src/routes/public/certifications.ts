@@ -10,6 +10,6 @@ const router = Router();
 
 router.get("/me", authenticate, getMyCertifications);
 router.get("/verify/:code", verifyCertificate);
-router.get("/:code/pdf", getCertificatePdf);
+router.get("/:code/pdf", authenticate, getCertificatePdf);
 
 export default router;

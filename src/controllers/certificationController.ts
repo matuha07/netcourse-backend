@@ -70,6 +70,11 @@ export const verifyCertificate = async (req: Request, res: Response) => {
 export const getCertificatePdf = async (req: Request, res: Response) => {
   try {
     const code = String(req.params.code);
+    const currentUser = (req as any).user;
+
+    if (!currentUser) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
     const cert = await db.query.certifications.findFirst({
       where: eq(certifications.certificateCode, code),
@@ -77,6 +82,10 @@ export const getCertificatePdf = async (req: Request, res: Response) => {
 
     if (!cert) {
       return res.status(404).json({ error: "Certificate not found" });
+    }
+
+    if (currentUser.role !== "ADMIN" && currentUser.id !== cert.userId) {
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     const user = await db.query.users.findFirst({

@@ -51,6 +51,10 @@ export const users = pgTable(
       "btree",
       table.email.asc().nullsLast().op("text_ops"),
     ),
+    uniqueIndex("users_username_key").using(
+      "btree",
+      table.username.asc().nullsLast().op("text_ops"),
+    ),
   ],
 );
 
