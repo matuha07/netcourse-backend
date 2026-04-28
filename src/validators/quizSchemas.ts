@@ -20,4 +20,18 @@ export const updateQuizSchema = z.object({
   }),
 });
 
+export const submitQuizSchema = z.object({
+  params: z.object({
+    id: z.string(),
+  }),
+  body: z.object({
+    answers: z.array(
+      z.object({
+        questionId: z.number().int(),
+        answerIds: z.array(z.number().int()).optional(),
+      }),
+    ).optional(),
+  }),
+});
+
 export type UpdateQuizInput = z.infer<typeof updateQuizSchema>;

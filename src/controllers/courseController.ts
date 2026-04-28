@@ -5,7 +5,13 @@ import { eq } from "drizzle-orm";
 
 export const createCourse = async (req: Request, res: Response) => {
   try {
-    const { title, description, category } = (req as any).validated.body;
+    const {
+      title,
+      description,
+      category,
+      requireQuizCompletion,
+      minQuizScore,
+    } = (req as any).validated.body;
 
     const [course] = await db
       .insert(courses)
@@ -13,6 +19,8 @@ export const createCourse = async (req: Request, res: Response) => {
         title,
         description,
         category,
+        requireQuizCompletion,
+        minQuizScore,
       })
       .returning();
 
@@ -65,11 +73,23 @@ export const getCourseById = async (req: Request, res: Response) => {
 export const updateCourse = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, category } = (req as any).validated.body;
+    const {
+      title,
+      description,
+      category,
+      requireQuizCompletion,
+      minQuizScore,
+    } = (req as any).validated.body;
 
     const [updated] = await db
       .update(courses)
-      .set({ title, description, category })
+      .set({
+        title,
+        description,
+        category,
+        requireQuizCompletion,
+        minQuizScore,
+      })
       .where(eq(courses.id, Number(id)))
       .returning();
 

@@ -64,6 +64,10 @@ export const courses = pgTable("courses", {
   title: text().notNull(),
   description: text(),
   category: text(),
+  requireQuizCompletion: boolean("require_quiz_completion")
+    .default(false)
+    .notNull(),
+  minQuizScore: integer("min_quiz_score").default(65).notNull(),
 });
 
 // Sections table
@@ -122,6 +126,36 @@ export const quizzes = pgTable(
       columns: [table.lessonId],
       foreignColumns: [lessons.id],
       name: "Quiz_lesson_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+export const quizAttempts = pgTable(
+  "quiz_attempts",
+  {
+    id: serial().primaryKey().notNull(),
+    userId: integer("user_id").notNull(),
+    quizId: integer("quiz_id").notNull(),
+    score: integer().notNull(),
+    passed: boolean().default(false).notNull(),
+    completedAt: timestamp("completed_at", { precision: 3, mode: "date" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [users.id],
+      name: "QuizAttempts_user_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.quizId],
+      foreignColumns: [quizzes.id],
+      name: "QuizAttempts_quiz_id_fkey",
     })
       .onUpdate("cascade")
       .onDelete("cascade"),

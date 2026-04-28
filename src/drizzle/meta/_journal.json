@@ -29,6 +29,13 @@
       "when": 1777104356509,
       "tag": "0003_user_username_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777105356509,
+      "tag": "0004_quiz_attempts_course_gate",
+      "breakpoints": true
     }
   ]
 }

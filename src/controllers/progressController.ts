@@ -1,7 +1,17 @@
 import { Request, Response } from "express";
 import { db } from "../drizzle/db";
-import { progress, certifications, badges, userBadges } from "../drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import {
+  progress,
+  certifications,
+  badges,
+  userBadges,
+  courses,
+  sections,
+  lessons,
+  quizzes,
+  quizAttempts,
+} from "../drizzle/schema";
+import { eq, and, inArray, gte } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { sanitizeUserPublic } from "../utils/userPublicFields";
 
@@ -39,6 +49,68 @@ const awardOnCompletion = async (userId: number, courseId: number) => {
   }
 };
 
+const ensureQuizCompletion = async (userId: number, courseId: number) => {
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.id, courseId),
+  });
+
+  if (!course || !course.requireQuizCompletion) {
+    return { ok: true } as const;
+  }
+
+  const courseSections = await db.query.sections.findMany({
+    where: eq(sections.courseId, courseId),
+  });
+
+  const sectionIds = courseSections.map((section) => section.id);
+  if (sectionIds.length === 0) {
+    return { ok: true } as const;
+  }
+
+  const courseLessons = await db.query.lessons.findMany({
+    where: inArray(lessons.sectionId, sectionIds),
+  });
+
+  const lessonIds = courseLessons.map((lesson) => lesson.id);
+  if (lessonIds.length === 0) {
+    return { ok: true } as const;
+  }
+
+  const courseQuizzes = await db.query.quizzes.findMany({
+    where: inArray(quizzes.lessonId, lessonIds),
+  });
+
+  const quizIds = courseQuizzes.map((quiz) => quiz.id);
+  if (quizIds.length === 0) {
+    return { ok: true } as const;
+  }
+
+  const passed = await db
+    .select({ quizId: quizAttempts.quizId })
+    .from(quizAttempts)
+    .where(
+      and(
+        eq(quizAttempts.userId, userId),
+        gte(quizAttempts.score, course.minQuizScore),
+        inArray(quizAttempts.quizId, quizIds),
+      ),
+    )
+    .groupBy(quizAttempts.quizId);
+
+  const passedIds = new Set(passed.map((item) => item.quizId));
+  const missingQuizIds = quizIds.filter((id) => !passedIds.has(id));
+
+  if (missingQuizIds.length > 0) {
+    return {
+      ok: false,
+      missingQuizIds,
+      minScore: course.minQuizScore,
+    } as const;
+  }
+
+  return { ok: true } as const;
+};
+
 export const getUserProgress = async (req: Request, res: Response) => {
   try {
     const { courseId } = req.params;
@@ -64,6 +136,17 @@ export const updateUserProgress = async (req: Request, res: Response) => {
     const courseId = Number((req as any).validated.params.courseId);
     const { status } = (req as any).validated.body;
     const userId = (req as any).user.id;
+
+    if (status === "completed") {
+      const result = await ensureQuizCompletion(userId, courseId);
+      if (!result.ok) {
+        return res.status(409).json({
+          error: "Complete all quizzes before finishing the course",
+          missingQuizIds: result.missingQuizIds,
+          minScore: result.minScore,
+        });
+      }
+    }
 
     const existing = await db.query.progress.findFirst({
       where: and(
@@ -140,6 +223,17 @@ export const updateUserProgressAdmin = async (req: Request, res: Response) => {
   try {
     const { courseId, userId } = req.params;
     const { status } = (req as any).validated.body;
+
+    if (status === "completed") {
+      const result = await ensureQuizCompletion(Number(userId), Number(courseId));
+      if (!result.ok) {
+        return res.status(409).json({
+          error: "Complete all quizzes before finishing the course",
+          missingQuizIds: result.missingQuizIds,
+          minScore: result.minScore,
+        });
+      }
+    }
 
     const existing = await db.query.progress.findFirst({
       where: and(

@@ -207,6 +207,8 @@ Liveness check для оркестрации/мониторинга.
     "title": "JS Basics",
     "description": "intro",
     "category": "programming",
+    "requireQuizCompletion": false,
+    "minQuizScore": 65,
     "enrollments": [],
     "sections": []
   }
@@ -224,6 +226,8 @@ Liveness check для оркестрации/мониторинга.
   "title": "JS Basics",
   "description": "intro",
   "category": "programming",
+  "requireQuizCompletion": false,
+  "minQuizScore": 65,
   "enrollments": [],
   "sections": []
 }
@@ -416,6 +420,7 @@ Liveness check для оркестрации/мониторинга.
 - `"completed"`
 
 **Примечание:** При установке статуса `"completed"`:
+- Если для курса включено `requireQuizCompletion`, курс нельзя завершить пока не пройдены все викторины с минимальным баллом `minQuizScore`.
 - Автоматически создается сертификат с уникальным кодом
 - Автоматически присваивается значок (badge), если он привязан к этому курсу
 
@@ -427,6 +432,15 @@ Liveness check для оркестрации/мониторинга.
   "courseId": 1,
   "status": "completed",
   "updatedAt": "2026-02-18T12:00:00.000Z"
+}
+```
+
+**Response (не пройдены все викторины):**
+```json
+{
+  "error": "Complete all quizzes before finishing the course",
+  "missingQuizIds": [1, 3],
+  "minScore": 65
 }
 ```
 
@@ -481,6 +495,45 @@ Liveness check для оркестрации/мониторинга.
       "answers": []
     }
   ]
+}
+```
+
+### POST /courses/:courseId/sections/:sectionId/lessons/:lessonId/quizzes/:quizId/attempts
+
+Отправить попытку прохождения викторины.
+
+**Аутентификация:** требуется.
+
+**Примечания:**
+- Учитываются только вопросы типов `single` и `multiple`.
+- Вопросы типа `text` не влияют на оценку.
+- Проходной балл берется из настроек курса (`minQuizScore`, по умолчанию 65).
+
+**Request Body:**
+```json
+{
+  "answers": [
+    {
+      "questionId": 1,
+      "answerIds": [3]
+    },
+    {
+      "questionId": 2,
+      "answerIds": [5, 6]
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "attemptId": 10,
+  "score": 75,
+  "passed": true,
+  "correctCount": 3,
+  "totalCount": 4,
+  "minScore": 65
 }
 ```
 
@@ -1125,6 +1178,8 @@ Liveness check для оркестрации/мониторинга.
     "title": "JS Basics",
     "description": "intro",
     "category": "programming",
+    "requireQuizCompletion": false,
+    "minQuizScore": 65,
     "enrollments": [],
     "sections": []
   }
@@ -1142,6 +1197,8 @@ Liveness check для оркестрации/мониторинга.
   "title": "JS Basics",
   "description": "intro",
   "category": "programming",
+  "requireQuizCompletion": false,
+  "minQuizScore": 65,
   "enrollments": [],
   "sections": []
 }
@@ -1156,7 +1213,9 @@ Liveness check для оркестрации/мониторинга.
 {
   "title": "JS Basics",
   "description": "intro",
-  "category": "programming"
+  "category": "programming",
+  "requireQuizCompletion": true,
+  "minQuizScore": 65
 }
 ```
 
@@ -1169,7 +1228,9 @@ Liveness check для оркестрации/мониторинга.
 {
   "title": "Updated Title",
   "description": "Updated description",
-  "category": "web-development"
+  "category": "web-development",
+  "requireQuizCompletion": true,
+  "minQuizScore": 70
 }
 ```
 

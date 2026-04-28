@@ -5,6 +5,8 @@ export const createCourseSchema = z.object({
     title: z.string().min(3),
     description: z.string().optional().nullable(),
     category: z.string().optional().nullable(),
+    requireQuizCompletion: z.boolean().optional(),
+    minQuizScore: z.number().int().min(0).max(100).optional(),
   }),
 });
 
@@ -18,6 +20,8 @@ export const updateCourseSchema = z.object({
     title: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
     category: z.string().optional().nullable(),
+    requireQuizCompletion: z.boolean().optional(),
+    minQuizScore: z.number().int().min(0).max(100).optional(),
   }),
 });
 

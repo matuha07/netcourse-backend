@@ -5,7 +5,7 @@ import {
 	userSocialLinks, badges, userBadges, certifications,
 	forumPosts, forumReplies,
 	forumTags, forumPostTags, forumReplyTags,
-	forumPostLikes, forumReplyLikes
+	forumPostLikes, forumReplyLikes, quizAttempts
 } from "./schema";
 
 export const lessonsRelations = relations(lessons, ({one, many}) => ({
@@ -38,6 +38,7 @@ export const quizzesRelations = relations(quizzes, ({one, many}) => ({
 		fields: [quizzes.lessonId],
 		references: [lessons.id]
 	}),
+	attempts: many(quizAttempts),
 }));
 
 export const answersRelations = relations(answers, ({one}) => ({
@@ -72,10 +73,22 @@ export const usersRelations = relations(users, ({many}) => ({
 	socialLinks: many(userSocialLinks),
 	badges: many(userBadges),
 	certifications: many(certifications),
+	quizAttempts: many(quizAttempts),
 	forumPosts: many(forumPosts),
 	forumReplies: many(forumReplies),
 	forumPostLikes: many(forumPostLikes),
 	forumReplyLikes: many(forumReplyLikes),
+}));
+
+export const quizAttemptsRelations = relations(quizAttempts, ({one}) => ({
+	quiz: one(quizzes, {
+		fields: [quizAttempts.quizId],
+		references: [quizzes.id]
+	}),
+	user: one(users, {
+		fields: [quizAttempts.userId],
+		references: [users.id]
+	}),
 }));
 
 export const progressRelations = relations(progress, ({one}) => ({
