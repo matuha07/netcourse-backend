@@ -70,6 +70,43 @@ export const courses = pgTable("courses", {
   minQuizScore: integer("min_quiz_score").default(65).notNull(),
 });
 
+export const courseRatings = pgTable(
+  "course_ratings",
+  {
+    id: serial().primaryKey().notNull(),
+    userId: integer("user_id").notNull(),
+    courseId: integer("course_id").notNull(),
+    rating: integer().notNull(),
+    createdAt: timestamp("created_at", { precision: 3, mode: "date" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { precision: 3, mode: "date" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("course_ratings_user_id_course_id_key").using(
+      "btree",
+      table.userId.asc().nullsLast().op("int4_ops"),
+      table.courseId.asc().nullsLast().op("int4_ops"),
+    ),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [users.id],
+      name: "CourseRatings_user_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.courseId],
+      foreignColumns: [courses.id],
+      name: "CourseRatings_course_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
 // Sections table
 export const sections = pgTable(
   "sections",

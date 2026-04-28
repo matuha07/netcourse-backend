@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm/relations";
 import {
 	sections, lessons, quizzes, questions, answers,
 	courses, enrollments, users, progress,
-	userSocialLinks, badges, userBadges, certifications,
+	userSocialLinks, badges, userBadges, certifications, courseRatings,
 	forumPosts, forumReplies,
 	forumTags, forumPostTags, forumReplyTags,
 	forumPostLikes, forumReplyLikes, quizAttempts
@@ -65,6 +65,7 @@ export const coursesRelations = relations(courses, ({many}) => ({
 	sections: many(sections),
 	badges: many(badges),
 	certifications: many(certifications),
+	ratings: many(courseRatings),
 }));
 
 export const usersRelations = relations(users, ({many}) => ({
@@ -74,10 +75,22 @@ export const usersRelations = relations(users, ({many}) => ({
 	badges: many(userBadges),
 	certifications: many(certifications),
 	quizAttempts: many(quizAttempts),
+	courseRatings: many(courseRatings),
 	forumPosts: many(forumPosts),
 	forumReplies: many(forumReplies),
 	forumPostLikes: many(forumPostLikes),
 	forumReplyLikes: many(forumReplyLikes),
+}));
+
+export const courseRatingsRelations = relations(courseRatings, ({one}) => ({
+	user: one(users, {
+		fields: [courseRatings.userId],
+		references: [users.id]
+	}),
+	course: one(courses, {
+		fields: [courseRatings.courseId],
+		references: [courses.id]
+	}),
 }));
 
 export const quizAttemptsRelations = relations(quizAttempts, ({one}) => ({

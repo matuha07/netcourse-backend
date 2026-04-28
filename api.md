@@ -209,6 +209,8 @@ Liveness check для оркестрации/мониторинга.
     "category": "programming",
     "requireQuizCompletion": false,
     "minQuizScore": 65,
+    "averageRating": 4.5,
+    "ratingsCount": 12,
     "enrollments": [],
     "sections": []
   }
@@ -228,6 +230,8 @@ Liveness check для оркестрации/мониторинга.
   "category": "programming",
   "requireQuizCompletion": false,
   "minQuizScore": 65,
+  "averageRating": 4.5,
+  "ratingsCount": 12,
   "enrollments": [],
   "sections": []
 }
@@ -441,6 +445,75 @@ Liveness check для оркестрации/мониторинга.
   "error": "Complete all quizzes before finishing the course",
   "missingQuizIds": [1, 3],
   "minScore": 65
+}
+```
+
+---
+
+## Оценки курсов (Course Ratings)
+
+Маршруты: `/courses/:courseId/ratings`.
+
+### GET /courses/:courseId/ratings
+
+Получить среднюю оценку и количество оценок для курса.
+
+**Response:**
+```json
+{
+  "average": 4.5,
+  "count": 12
+}
+```
+
+### GET /courses/:courseId/ratings/me
+
+Получить оценку текущего пользователя для курса.
+
+**Аутентификация:** требуется.
+
+**Response:**
+```json
+{
+  "rating": 4
+}
+```
+
+**Response (оценки нет):**
+```json
+{
+  "rating": null
+}
+```
+
+### POST /courses/:courseId/ratings
+
+Поставить или обновить оценку курса.
+
+**Аутентификация:** требуется.
+
+**Доступ:** только для пользователей, записанных на курс.
+
+**Request Body:**
+```json
+{
+  "rating": 5
+}
+```
+
+**Response:**
+```json
+{
+  "rating": 5,
+  "average": 4.6,
+  "count": 13
+}
+```
+
+**Response (нет доступа):**
+```json
+{
+  "error": "Only enrolled users can rate this course"
 }
 ```
 

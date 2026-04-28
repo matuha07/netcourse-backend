@@ -15,6 +15,7 @@ import certificationsRoutes from "./certifications";
 import forumPostsRoutes from "./forumPosts";
 import forumRepliesRoutes from "./forumReplies";
 import profileRoutes from "./profiles";
+import courseRatingRoutes from "./courseRatings";
 
 const router = Router();
 
@@ -43,5 +44,6 @@ router.use("/certifications", certificationsRoutes);
 router.use("/forum/posts", forumPostsRoutes);
 router.use("/forum/posts/:postId/replies", forumRepliesRoutes);
 router.use("/profiles", profileRoutes);
+router.use("/courses/:courseId/ratings", courseRatingRoutes);
 
 export default router;

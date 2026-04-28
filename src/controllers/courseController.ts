@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../drizzle/db";
-import { courses } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { courses, courseRatings } from "../drizzle/schema";
+import { eq, sql } from "drizzle-orm";
 
 export const createCourse = async (req: Request, res: Response) => {
   try {
@@ -40,7 +40,38 @@ export const getAllCourses = async (req: Request, res: Response) => {
       },
     });
 
-    res.json(coursesList);
+    const ratings = await db
+      .select({
+        courseId: courseRatings.courseId,
+        average: sql<number>`avg(${courseRatings.rating})`,
+        count: sql<number>`count(*)`,
+      })
+      .from(courseRatings)
+      .groupBy(courseRatings.courseId);
+
+    const ratingsMap = new Map(
+      ratings.map((row) => [
+        row.courseId,
+        {
+          count: Number(row.count ?? 0),
+          average: Number(row.average ?? 0),
+        },
+      ]),
+    );
+
+    res.json(
+      coursesList.map((course) => {
+        const rating = ratingsMap.get(course.id);
+        const count = rating?.count ?? 0;
+        const average = count > 0 ? rating?.average ?? 0 : null;
+
+        return {
+          ...course,
+          averageRating: average,
+          ratingsCount: count,
+        };
+      }),
+    );
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch courses" });
@@ -63,7 +94,22 @@ export const getCourseById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    res.json(course);
+    const [rating] = await db
+      .select({
+        average: sql<number>`avg(${courseRatings.rating})`,
+        count: sql<number>`count(*)`,
+      })
+      .from(courseRatings)
+      .where(eq(courseRatings.courseId, Number(id)));
+
+    const count = Number(rating?.count ?? 0);
+    const average = count > 0 ? Number(rating?.average ?? 0) : null;
+
+    res.json({
+      ...course,
+      averageRating: average,
+      ratingsCount: count,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch course" });

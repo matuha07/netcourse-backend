@@ -36,6 +36,13 @@
       "when": 1777105356509,
       "tag": "0004_quiz_attempts_course_gate",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777108356509,
+      "tag": "0005_course_ratings",
+      "breakpoints": true
     }
   ]
 }
