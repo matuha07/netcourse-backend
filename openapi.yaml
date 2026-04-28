@@ -1,0 +1,561 @@
+openapi: 3.0.3
+info:
+  title: Netcourse API
+  version: 1.0.0
+  description: API documentation for Netcourse backend.
+servers:
+  - url: /api
+tags:
+  - name: Auth
+  - name: Health
+  - name: Users
+  - name: Profiles
+  - name: Courses
+  - name: Progress
+  - name: Quizzes
+  - name: SocialLinks
+  - name: Certifications
+  - name: Forum
+  - name: Ratings
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+    AuthRegisterRequest:
+      type: object
+      required: [email, password, username]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        username:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+    AuthLoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        username:
+          type: string
+          nullable: true
+        role:
+          type: string
+    AuthRegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: "#/components/schemas/AuthUser"
+    AuthLoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/AuthUser"
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        uptime:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        requireQuizCompletion:
+          type: boolean
+        minQuizScore:
+          type: integer
+        averageRating:
+          type: number
+          nullable: true
+        ratingsCount:
+          type: integer
+        enrollments:
+          type: array
+          items:
+            type: object
+        sections:
+          type: array
+          items:
+            type: object
+    CourseRatingSummary:
+      type: object
+      properties:
+        average:
+          type: number
+          nullable: true
+        count:
+          type: integer
+    CourseRatingMe:
+      type: object
+      properties:
+        rating:
+          type: integer
+          nullable: true
+    CourseRatingUpsert:
+      type: object
+      required: [rating]
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+    QuizAttemptRequest:
+      type: object
+      properties:
+        answers:
+          type: array
+          items:
+            type: object
+            required: [questionId]
+            properties:
+              questionId:
+                type: integer
+              answerIds:
+                type: array
+                items:
+                  type: integer
+    QuizAttemptResponse:
+      type: object
+      properties:
+        attemptId:
+          type: integer
+        score:
+          type: integer
+        passed:
+          type: boolean
+        correctCount:
+          type: integer
+        totalCount:
+          type: integer
+        minScore:
+          type: integer
+    ProgressUpdateRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [not_started, in_progress, completed]
+    ProgressConflict:
+      type: object
+      properties:
+        error:
+          type: string
+        missingQuizIds:
+          type: array
+          items:
+            type: integer
+        minScore:
+          type: integer
+    SocialLink:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        platform:
+          type: string
+        url:
+          type: string
+    PublicProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        socialLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/SocialLink"
+        certifications:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              issuedAt:
+                type: string
+                format: date-time
+              course:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  category:
+                    type: string
+                    nullable: true
+        stats:
+          type: object
+          properties:
+            postsCount:
+              type: integer
+            repliesCount:
+              type: integer
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Liveness check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRegisterRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthRegisterResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthLoginRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthLoginResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /profiles/{id}:
+    get:
+      tags: [Profiles]
+      summary: Get public profile by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfile"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /profiles/u/{username}:
+    get:
+      tags: [Profiles]
+      summary: Get public profile by username
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfile"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /courses:
+    get:
+      tags: [Courses]
+      summary: Get all courses
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+  /courses/{courseId}:
+    get:
+      tags: [Courses]
+      summary: Get course by id
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /courses/{courseId}/progress:
+    get:
+      tags: [Progress]
+      summary: Get course progress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [Progress]
+      summary: Update course progress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgressUpdateRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        "409":
+          description: Quiz completion required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgressConflict"
+  /courses/{courseId}/sections/{sectionId}/lessons/{lessonId}/quizzes/{quizId}/attempts:
+    post:
+      tags: [Quizzes]
+      summary: Submit quiz attempt
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizAttemptRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizAttemptResponse"
+  /courses/{courseId}/ratings:
+    get:
+      tags: [Ratings]
+      summary: Get course ratings summary
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourseRatingSummary"
+    post:
+      tags: [Ratings]
+      summary: Create or update rating
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourseRatingUpsert"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rating:
+                    type: integer
+                  average:
+                    type: number
+                    nullable: true
+                  count:
+                    type: integer
+        "403":
+          description: Not enrolled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /courses/{courseId}/ratings/me:
+    get:
+      tags: [Ratings]
+      summary: Get my rating for course
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourseRatingMe"

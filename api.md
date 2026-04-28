@@ -1253,6 +1253,8 @@ Liveness check для оркестрации/мониторинга.
     "category": "programming",
     "requireQuizCompletion": false,
     "minQuizScore": 65,
+    "averageRating": 4.5,
+    "ratingsCount": 12,
     "enrollments": [],
     "sections": []
   }
@@ -1272,6 +1274,8 @@ Liveness check для оркестрации/мониторинга.
   "category": "programming",
   "requireQuizCompletion": false,
   "minQuizScore": 65,
+  "averageRating": 4.5,
+  "ratingsCount": 12,
   "enrollments": [],
   "sections": []
 }

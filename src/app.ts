@@ -4,6 +4,10 @@ import { requestLogger } from "./middleware/requestLogger";
 
 import express, { Application } from "express";
 import cors from "cors";
+import path from "node:path";
+import fs from "node:fs";
+import swaggerUi from "swagger-ui-express";
+import YAML from "yaml";
 
 const app: Application = express();
 app.use(cors());
@@ -17,6 +21,12 @@ app.get("/health", (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+const openApiPath = path.join(__dirname, "../openapi.yaml");
+if (fs.existsSync(openApiPath)) {
+  const openApiDoc = YAML.parse(fs.readFileSync(openApiPath, "utf8"));
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDoc));
+}
 
 app.use("/api/admin", (req, _res, next) => {
   if (!req.body) req.body = {};

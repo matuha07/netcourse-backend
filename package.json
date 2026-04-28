@@ -41,6 +41,8 @@
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "rotating-file-stream": "^3.2.9",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.8.3",
     "zod": "^4.1.13"
   },
   "repository": {
