@@ -43,6 +43,13 @@
       "when": 1777108356509,
       "tag": "0005_course_ratings",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789031160000,
+      "tag": "0006_site_visits",
+      "breakpoints": true
     }
   ]
 }

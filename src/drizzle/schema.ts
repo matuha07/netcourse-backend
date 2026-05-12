@@ -31,6 +31,14 @@ export const SocialPlatform = pgEnum("SocialPlatform", [
   "other",
 ]);
 
+export const siteVisits = pgTable("site_visits", {
+  id: integer().primaryKey().notNull(),
+  count: integer().notNull().default(0),
+  updatedAt: timestamp("updated_at", { precision: 3, mode: "date" })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
 // Users table
 export const users = pgTable(
   "users",
